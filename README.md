@@ -63,6 +63,10 @@ A step-by-step Test Offer, from finding a category to reading its results, is in
 
 Import [postman/agilis-ads-api.postman_collection.json](postman/agilis-ads-api.postman_collection.json) and the Test environment [postman/agilis-ads-api-test.postman_environment.json](postman/agilis-ads-api-test.postman_environment.json), then set `api_key` to your Test key. Requests that create something or can spend money are marked **[write]** and **[spends]**. The collection is generated from the OpenAPI description by [tools/build_postman.py](tools/build_postman.py).
 
+## AI assistants (MCP)
+
+Connect Claude Code, Cursor, VS Code or another MCP client to `https://ads.agilis.dating/mcp` with your API key. Its tools read your categories, prices, Offers, Events and results; they never change anything. Set-up: [docs/mcp.md](docs/mcp.md).
+
 ## Authentication, limits and errors
 
 - Send your key in the `x-api-key` header on every request.
