@@ -65,7 +65,7 @@ Import [postman/agilis-ads-api.postman_collection.json](postman/agilis-ads-api.p
 
 ## AI assistants (MCP)
 
-Connect Claude Code, Cursor, VS Code or another MCP client to `https://ads.agilis.dating/mcp` with your API key. Its tools read your categories, prices, Offers, Events and results; they never change anything. Set-up: [docs/mcp.md](docs/mcp.md).
+Connect Claude Code, Cursor, VS Code or another MCP client to `https://ads.agilis.dating/api/mcp` with your API key. Its tools read your categories, prices, Offers, Events and results; they never change anything. Set-up: [docs/mcp.md](docs/mcp.md).
 
 ## Authentication, limits and errors
 

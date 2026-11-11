@@ -2,7 +2,7 @@
 
 The Agilis MCP server lets an MCP-capable assistant, such as Claude Code, Cursor or VS Code, read your organisation's advertising data: categories, interests, price estimates, your Offers and Events, and their results.
 
-- **Address:** `https://ads.agilis.dating/mcp` (Streamable HTTP).
+- **Address:** `https://ads.agilis.dating/api/mcp` (Streamable HTTP).
 - **Key:** your Agilis API key, in the `x-api-key` header (or `Authorization: Bearer`).
 - **Mode:** the tools work in your key's own mode. A Test key sees Test data, a Live key sees Live data. Start with a Test key.
 - **Read-only:** the tools never create, change, pay for or delete anything.
@@ -18,7 +18,7 @@ Add this to `.mcp.json` in your project. Claude Code reads `AGILIS_API_KEY` from
   "mcpServers": {
     "agilis-ads": {
       "type": "http",
-      "url": "https://ads.agilis.dating/mcp",
+      "url": "https://ads.agilis.dating/api/mcp",
       "headers": { "x-api-key": "${AGILIS_API_KEY}" }
     }
   }
@@ -33,7 +33,7 @@ Add this to `~/.cursor/mcp.json`, or `.cursor/mcp.json` in your project:
 {
   "mcpServers": {
     "agilis-ads": {
-      "url": "https://ads.agilis.dating/mcp",
+      "url": "https://ads.agilis.dating/api/mcp",
       "headers": { "x-api-key": "${env:AGILIS_API_KEY}" }
     }
   }
@@ -52,7 +52,7 @@ Add this to `.vscode/mcp.json`. VS Code asks for the key once and keeps it in it
   "servers": {
     "agilis-ads": {
       "type": "http",
-      "url": "https://ads.agilis.dating/mcp",
+      "url": "https://ads.agilis.dating/api/mcp",
       "headers": { "x-api-key": "${input:agilis-api-key}" }
     }
   }
