@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Shared by the curl examples. Test mode only.
 set -euo pipefail
 : "${AGILIS_API_KEY:?Set AGILIS_API_KEY to your Test API key (pk_test_...).}"
