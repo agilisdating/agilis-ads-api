@@ -1,0 +1,1367 @@
+{
+  "info": {
+    "name": "Agilis Advertising API",
+    "description": "Generated from https://www.agilis.dating/openapi.json by tools/build_postman.py (OpenAPI 1.0.0).\n\nUse the Test environment and a Test key (pk_test_...). [write] requests change data; [spends] requests can charge money in Live mode. Reference: https://ads.agilis.dating/api-doc",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Offers",
+      "item": [
+        {
+          "name": "Category List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Returns all active categories available to the organisation that owns the API key. It is typically called before creating an offer, because offer creation requires a valid category ID returned by this endpoint.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        },
+        {
+          "name": "Interest List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/interests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "interests"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Returns the interests available for offer targeting. Call it before creating an offer if you intend to use the optional `interests` array, which restricts the offer to users who have selected at least one of the interests supplied.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        },
+        {
+          "name": "Offer Price Estimate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/offers/price-estimate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offers",
+                "price-estimate"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Calculates what an offer will cost before it is created: its size in Ad Units (duration in hours × the number of Agilis users it would reach) and what those units cost in money. Only active, non-banned accounts are counted. Pass the same `gender` and `interests` values you intend to create the offer with, otherwise the estimate will be higher than the amount actually charged.\n\n`price_estimate` is a number of **Ad Units**, not money. `estimated_cost` is the **money** the offer will cost, and is the figure to compare with your balance.\n\nThere is no `currency` parameter: the estimate is always in your organisation's billing currency, named in the response's `currency` field.\n\nReference: https://ads.agilis.dating/api-doc",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_datetime\": \"2027-07-10T08:00:00Z\",\n  \"end_datetime\": \"2027-07-12T20:30:00Z\",\n  \"location\": [\n    51.5074,\n    -0.1278\n  ],\n  \"radius\": 10,\n  \"gender\": [\n    \"Male\",\n    \"Female\"\n  ],\n  \"interests\": [\n    3,\n    7\n  ],\n  \"environment\": \"test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create Offer [write] [spends]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "type": "text",
+                "description": "A unique value you generate per offer (for example a UUID v4). Replaying the same key safely retries the request without creating a duplicate offer or a second Stripe payment; the original response, including any `payment_url`, is returned verbatim. Missing: HTTP 400 / `E1`."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/offers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offers"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Creates a new offer for the authenticated advertiser. The request is sent as `multipart/form-data` with the offer image supplied as a binary file stream. The image is checked by automated content moderation before the offer is created: if it fails, nothing is created and nothing is charged.\n\n**Paying by Stripe link** (`payment_method=E`): the offer is created in **Awaiting Payment** and the response carries a `payment_url`. Stripe's `checkout.session.completed` webhook activates it: **Active** if its start has passed, **Scheduled** if not. An organisation registered in the UK pays VAT at 20% on top, as a separate line on the Stripe page. Stripe will not take a card payment below its minimum for the currency (for example £0.30, US$0.50 or €0.50): such an offer is refused with `E1`.\n\n**Paying from balance** (`payment_method=B`): the offer's price is deducted at once, from the balance of the offer's own mode (TEST and LIVE balances are separate). Compare your balance with `estimated_cost` from the price estimate, never `price_estimate`.\n\nThere is no `currency` parameter: every offer is priced and charged in your organisation's billing currency, named in the response.\n\nReference: https://ads.agilis.dating/api-doc",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "category_id",
+                  "value": "1",
+                  "type": "text",
+                  "description": "A valid category ID from the Category List API. Example: `1`",
+                  "disabled": false
+                },
+                {
+                  "key": "title",
+                  "value": "20% off summer sale",
+                  "type": "text",
+                  "description": "Up to 40 characters. Example: `\"20% off summer sale\"`",
+                  "disabled": false
+                },
+                {
+                  "key": "description",
+                  "value": "Discount valid through July",
+                  "type": "text",
+                  "description": "Up to 500 characters. Example: `\"Discount valid through July\"`",
+                  "disabled": false
+                },
+                {
+                  "key": "terms_and_conditions",
+                  "value": "Valid online only.",
+                  "type": "text",
+                  "description": "Up to 500 characters. Example: `\"Valid online only.\"`",
+                  "disabled": true
+                },
+                {
+                  "key": "advertised_name",
+                  "value": "Brighton Bakehouse",
+                  "type": "text",
+                  "description": "The business name members see on the offer instead of your organisation's trading name — for example when an agency advertises for a client. Up to 100 characters; must not start with http://, https:// or www.; no HTML or line breaks. Omit or send empty to show your trading name. You must be authorised by the business you name. Invoices and analytics stay in your organisation's name. Example: `\"Brighton Bakehouse\"`",
+                  "disabled": true
+                },
+                {
+                  "key": "push_notification_title",
+                  "value": "20% off this summer",
+                  "type": "text",
+                  "description": "The title of the notification sent to members who chose to get offer notifications, shown on their lock screen as you write it (it is not translated). 5 to 50 characters. Missing: `E10`; too short: `E11`; too long: `E12`; refused by content moderation: `E13`. Example: `\"20% off this summer\"`",
+                  "disabled": false
+                },
+                {
+                  "key": "push_notification_message",
+                  "value": "Show this at the till for 20% off everything until the end of July.",
+                  "type": "text",
+                  "description": "The notification's message, under the title. 5 to 150 characters; phones cut it at about 100, so keep it short. Same return codes as `push_notification_title`. Example: `\"Show this at the till for 20% off everything until the end of July.\"`",
+                  "disabled": false
+                },
+                {
+                  "key": "button_preset",
+                  "value": "claim_offer",
+                  "type": "text",
+                  "description": "The words on the offer's button in the Agilis apps and web app: `claim_offer` (Claim Offer, the default when omitted or empty), `visit_website` (Visit our website), `install_app` (Install our app), `book_now` (Book now), `get_directions` (Get directions) or `custom` (your own words, in `button_text`). Ready-made texts are shown in each member's app language. Whatever the text, the button opens your `url`. Any other value: `E14`. Example: `\"book_now\"`",
+                  "disabled": true
+                },
+                {
+                  "key": "button_text",
+                  "value": "Show this at the bar",
+                  "type": "text",
+                  "description": "Your own button text: required when `button_preset` is `custom`, ignored otherwise. Plain text on one line, 1 to 20 characters after trimming, shown exactly as you write it in every language (it is not translated). Missing, empty, with a line break or with HTML: `E15`; over 20 characters: `E16`. Example: `\"Show this at the bar\"`",
+                  "disabled": true
+                },
+                {
+                  "key": "url",
+                  "value": "https://advertiseroffer.com",
+                  "type": "text",
+                  "description": "Your offer page. Example: `\"https://advertiseroffer.com\"`",
+                  "disabled": false
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "description": "JPG, PNG or GIF, maximum 5 MB, sent as a binary file stream. Recommended size: `1080x1080px`",
+                  "disabled": false
+                },
+                {
+                  "key": "location[]",
+                  "value": "51.5074",
+                  "type": "text",
+                  "description": "Latitude and longitude as two values. Example: `[51.5074, -0.1278]`",
+                  "disabled": false
+                },
+                {
+                  "key": "location[]",
+                  "value": "-0.1278",
+                  "type": "text",
+                  "description": "Latitude and longitude as two values. Example: `[51.5074, -0.1278]`",
+                  "disabled": false
+                },
+                {
+                  "key": "radius",
+                  "value": "10",
+                  "type": "text",
+                  "description": "Radius in miles, minimum 5, maximum 30. Example: `10`",
+                  "disabled": false
+                },
+                {
+                  "key": "gender[]",
+                  "value": "Male",
+                  "type": "text",
+                  "description": "Target specific genders. One or more of `Male`, `Female`, `Non-binary`, `All`. Omitting the field, or including `All`, reaches every gender. Narrowing this reduces the audience and therefore the price. Example: `[\"Male\", \"Female\"]`",
+                  "disabled": true
+                },
+                {
+                  "key": "gender[]",
+                  "value": "Female",
+                  "type": "text",
+                  "description": "Target specific genders. One or more of `Male`, `Female`, `Non-binary`, `All`. Omitting the field, or including `All`, reaches every gender. Narrowing this reduces the audience and therefore the price. Example: `[\"Male\", \"Female\"]`",
+                  "disabled": true
+                },
+                {
+                  "key": "interests[]",
+                  "value": "3",
+                  "type": "text",
+                  "description": "Target users by interest, using ids from `GET /interests`. A user matches if they share **any** of the interests supplied. Omitting the field applies no interest filter. Narrowing this reduces the audience and therefore the price. Example: `[3, 7]`",
+                  "disabled": true
+                },
+                {
+                  "key": "interests[]",
+                  "value": "7",
+                  "type": "text",
+                  "description": "Target users by interest, using ids from `GET /interests`. A user matches if they share **any** of the interests supplied. Omitting the field applies no interest filter. Narrowing this reduces the audience and therefore the price. Example: `[3, 7]`",
+                  "disabled": true
+                },
+                {
+                  "key": "start_datetime",
+                  "value": "2027-07-10T08:00:00Z",
+                  "type": "text",
+                  "description": "ISO 8601, UTC. Now or later: a start more than 60 seconds before now (UTC) is refused with `E1`. Example: `\"2027-07-10T08:00:00Z\"`",
+                  "disabled": false
+                },
+                {
+                  "key": "expiry_datetime",
+                  "value": "2027-07-12T20:30:00Z",
+                  "type": "text",
+                  "description": "ISO 8601, UTC; at least 60 seconds after `start_datetime`. Example: `\"2027-07-12T20:30:00Z\"`",
+                  "disabled": false
+                },
+                {
+                  "key": "payment_method",
+                  "value": "E",
+                  "type": "text",
+                  "description": "`E` = Stripe payment link by email; `B` = deduct from organisation balance (the balance of the offer's mode: TEST and LIVE balances are separate). For `E`, an organisation registered in the UK is charged VAT at 20% on top, as a separate line on the Stripe payment page. The offer's price and balance stay net of VAT.",
+                  "disabled": false
+                },
+                {
+                  "key": "environment",
+                  "value": "TEST",
+                  "type": "text",
+                  "description": "`TEST` or `LIVE`, in capitals. Must be your API key's own mode: a `pk_live_` key creates LIVE offers only, a `pk_test_` key TEST offers only.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "View Offers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/offers?environment=test",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offers"
+              ],
+              "query": [
+                {
+                  "key": "environment",
+                  "value": "test",
+                  "disabled": false,
+                  "description": "`test` or `live` (case-insensitive). Must be your API key's own mode. Example: `/offers?environment=test`"
+                },
+                {
+                  "key": "limit",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "Page size. Default `20`, maximum `100`."
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Opaque token from the previous page's `next_cursor`. Omit for the first page."
+                },
+                {
+                  "key": "offer_status",
+                  "value": "awaiting_payment",
+                  "disabled": true,
+                  "description": "Lifecycle filter: `awaiting_payment`, `active`, `paused` or `ended` (case-insensitive)."
+                },
+                {
+                  "key": "created_after",
+                  "value": "",
+                  "disabled": true,
+                  "description": "ISO 8601, UTC. Offers created at or after this time."
+                },
+                {
+                  "key": "created_before",
+                  "value": "",
+                  "disabled": true,
+                  "description": "ISO 8601, UTC. Offers created at or before this time."
+                }
+              ],
+              "variable": []
+            },
+            "description": "Returns a **paginated** list of offers created by the authenticated advertiser for the requested environment, newest first. Offers whose image was rejected by content moderation are never created, so they are not returned, and deleted offers are excluded. Page through results with `limit` and `cursor`.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        },
+        {
+          "name": "Pause Offer [write]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/offers/:offer_id/pause",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offers",
+                ":offer_id",
+                "pause"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "offer_id",
+                  "value": "",
+                  "description": "Path parameter. Example: `45`"
+                }
+              ]
+            },
+            "description": "Pauses a running offer. The offer must belong to the account that owns the API key and be in the key's mode (TEST or LIVE). Any other offer returns HTTP 401 with `E1`. Time spent paused is Unused Time: it is credited to your balance if you later delete the offer.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        },
+        {
+          "name": "Resume Offer [write]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/offers/:offer_id/resume",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offers",
+                ":offer_id",
+                "resume"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "offer_id",
+                  "value": "",
+                  "description": "Path parameter. Example: `45`"
+                }
+              ]
+            },
+            "description": "Resumes a paused offer. The offer must belong to the account that owns the API key and be in the key's mode. Any other offer returns HTTP 401 with `E1`.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        },
+        {
+          "name": "View Offer Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/offers/:offer_id/analytics?interval=24h",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offers",
+                ":offer_id",
+                "analytics"
+              ],
+              "query": [
+                {
+                  "key": "interval",
+                  "value": "24h",
+                  "disabled": false,
+                  "description": "One of `24h`, `7d`, `30d`, `60d`, `90d` or `all`."
+                }
+              ],
+              "variable": [
+                {
+                  "key": "offer_id",
+                  "value": "",
+                  "description": "Path parameter. Example: `45`"
+                }
+              ]
+            },
+            "description": "Returns view and click metrics for a specific offer over the requested time interval. The offer must belong to the account that owns the API key and be in the key's mode.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        },
+        {
+          "name": "Delete Offer [write]",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/offers/:offer_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offers",
+                ":offer_id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "offer_id",
+                  "value": "",
+                  "description": "Path parameter. Example: `45`"
+                }
+              ]
+            },
+            "description": "Deletes an offer belonging to the authenticated account, in your API key's mode (an offer of the other mode is not found).\n\n**Awaiting Payment:** the offer's Stripe payment page is closed first, so it can no longer be paid. If Stripe reports that the payment has just been completed, or the page cannot be closed, nothing is deleted (`E6`, `E7` below).\n\n**Paid offers** (Active, Scheduled or Paused): the offer's Unused Time is credited to your balance in the offer's own mode. Unused Time is the part of the scheduled period in which the offer did not run: the time from the deletion to the scheduled end, plus any time it spent paused. An offer deleted before it starts is credited in full. The credit is net of VAT and goes to your balance, never back to a card.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Event Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event-categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event-categories"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Returns the Agilis event categories, **for display**: for example to label an event in your own system with the category the API chose for it. It is not an input. The category of an event is determined from its title, description and venue name (see [Preview Event](https://www.agilis.dating/api-doc#previewEventSectionid)). Names are returned in the language of your `Accept-Language` header, falling back to English.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        },
+        {
+          "name": "Event Currencies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event-currencies",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event-currencies"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "The currency codes a ticket price may be quoted in: every currency with an exchange rate on file, which is what lets the app sort events by price across currencies. Use one of these for `currency` on publish and edit. This is the currency members see on the price pill; it has no effect on what you are charged.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        },
+        {
+          "name": "Event Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/event-config",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "event-config"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "What publishing costs your organisation, your balance, whether LIVE publishing is open, the accepted currencies and the image limits. Useful before a publish, or to show the fee in your own system. `listing_fee` is £10 converted at the day's European Central Bank reference rate into your organisation's billing currency (`currency`); `exchange_rate_per_gbp` is the rate used and `exchange_rate_date` its date (`1` and `null` for GBP). All three are `null` when your billing currency cannot be billed right now (see `E6` on Publish Event). `environment` is your API key's mode (`TEST` or `LIVE`), and `balance` and `organisation_balance` are the balances for that mode: **TEST and LIVE balances are separate**, so a TEST key never shows the LIVE balance.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        },
+        {
+          "name": "Preview Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/preview",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "events",
+                "preview"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Shows you what `POST /events` would do, **without publishing or charging**: the category your wording will get, the fee and your balance, and — if you include an image — the processed picture with its 16:9 crop applied, plus a `preview_token` that `POST /events` accepts instead of the file, so the published image is byte-for-byte the one you saw. Same fields as `POST /events`; `image` and `payment_method` are optional and no `Idempotency-Key` is needed. A rejected image returns `E2` here, before any payment. **Rate-limited** per organisation (60 previews per hour): each preview costs an image check and a classification.\n\nReference: https://ads.agilis.dating/api-doc",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "",
+                  "type": "text",
+                  "description": "The full field set of `POST /events`, validated exactly as on publish.",
+                  "disabled": true
+                },
+                {
+                  "key": "description",
+                  "value": "",
+                  "type": "text",
+                  "description": "The full field set of `POST /events`, validated exactly as on publish.",
+                  "disabled": true
+                },
+                {
+                  "key": "venue_name",
+                  "value": "",
+                  "type": "text",
+                  "description": "The full field set of `POST /events`, validated exactly as on publish.",
+                  "disabled": true
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "description": "JPG or PNG, detected from the file's content (not its name), up to **10 MB**, at least **1280 × 720** pixels. Members see events at 16:9: the image is scaled to fill a 16:9 frame with its centre kept and the overflow trimmed (a *centred cover crop*), never stretched or letterboxed. Pass `crop[x]`, `crop[y]`, `crop[w]` to choose the area yourself. If the area would be below 1280 × 720 the image is rejected rather than enlarged. Every image is decoded and re-encoded (so only a fresh copy is stored, with EXIF data including GPS removed), content-moderated, and scanned. Use `POST /events/preview` to see the result before paying.",
+                  "disabled": true
+                },
+                {
+                  "key": "crop[x",
+                  "value": "1",
+                  "type": "text",
+                  "description": "With `image`: the top-left corner and width, in pixels of the uploaded image, of the 16:9 area to use. The height is derived. Minimum width 1280. Omit for the centred cover crop.",
+                  "disabled": true
+                },
+                {
+                  "key": "crop[y",
+                  "value": "1",
+                  "type": "text",
+                  "description": "With `image`: the top-left corner and width, in pixels of the uploaded image, of the 16:9 area to use. The height is derived. Minimum width 1280. Omit for the centred cover crop.",
+                  "disabled": true
+                },
+                {
+                  "key": "crop[w",
+                  "value": "1",
+                  "type": "text",
+                  "description": "With `image`: the top-left corner and width, in pixels of the uploaded image, of the 16:9 area to use. The height is derived. Minimum width 1280. Omit for the centred cover crop.",
+                  "disabled": true
+                },
+                {
+                  "key": "environment",
+                  "value": "TEST",
+                  "type": "text",
+                  "description": "`TEST` or `LIVE`. Must be your API key's own mode (HTTP 403 otherwise). Decides whether `balance_after` subtracts the fee; `balance` is the balance for that mode.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Publish Event [write] [spends]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "type": "text",
+                "description": "A unique value per event, for example a UUID. Retrying with the same key and the same fields returns the original response and never charges twice."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "events"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Publishes one dated event. Sent as `multipart/form-data`. Publishing costs one flat price, deducted from your balance: **£10, converted into your organisation's billing currency at the day's European Central Bank reference rate**. The charge and the event are created together: if your balance is too low, nothing is created and nothing is charged. Listings are **non-refundable** once published, including if you later cancel. A recurring class is one event per date. **There is no `category_id`:** the category is determined from your title, description and venue name and returned in the response — preview it first if you want to see it before paying.\n\nReference: https://ads.agilis.dating/api-doc",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "",
+                  "type": "text",
+                  "description": "Up to 120 characters.",
+                  "disabled": false
+                },
+                {
+                  "key": "description",
+                  "value": "",
+                  "type": "text",
+                  "description": "Up to 5,000 characters.",
+                  "disabled": false
+                },
+                {
+                  "key": "venue_name",
+                  "value": "Bar Salsa",
+                  "type": "text",
+                  "description": "Example: `Bar Salsa`. Read, with the title and description, to determine the category.",
+                  "disabled": false
+                },
+                {
+                  "key": "address",
+                  "value": "",
+                  "type": "text",
+                  "description": "Street address of the venue.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "London",
+                  "type": "text",
+                  "description": "Example: `London`",
+                  "disabled": false
+                },
+                {
+                  "key": "country_code",
+                  "value": "GB",
+                  "type": "text",
+                  "description": "ISO 3166-1 alpha-2. Example: `GB` (not UK).",
+                  "disabled": false
+                },
+                {
+                  "key": "location[]",
+                  "value": "",
+                  "type": "text",
+                  "description": "Latitude first, then longitude, of the venue. Example: `51.5133`, `-0.1300`. **Coordinates are required and an address is not a substitute.** Every member sees how far the venue is from them, and that distance orders the list and drives the radius filter. `address` and `city` are shown to members but are never converted to coordinates on our side.",
+                  "disabled": false
+                },
+                {
+                  "key": "starts_at",
+                  "value": "2027-10-16T18:30:00Z",
+                  "type": "text",
+                  "description": "ISO 8601, UTC only. Must be in the future and no more than 5 years ahead. Example: `2027-10-16T18:30:00Z`",
+                  "disabled": false
+                },
+                {
+                  "key": "ends_at",
+                  "value": "",
+                  "type": "text",
+                  "description": "ISO 8601, UTC only. Must be after `starts_at`.",
+                  "disabled": false
+                },
+                {
+                  "key": "url",
+                  "value": "",
+                  "type": "text",
+                  "description": "**Required.** The http(s) address of your own booking page. Members tap through to it to book; Agilis does not sell tickets. An event cannot be published without one.",
+                  "disabled": false
+                },
+                {
+                  "key": "advertised_name",
+                  "value": "",
+                  "type": "text",
+                  "description": "The business name members see as “Listed by …” instead of your trading name. Up to 100 characters; must not start with http://, https:// or www.; no HTML or line breaks. Omit or send empty to show your trading name. You must be authorised by the business you name.",
+                  "disabled": true
+                },
+                {
+                  "key": "price_min",
+                  "value": "0",
+                  "type": "text",
+                  "description": "Ticket price, shown to members. Omit both to show no price (such events sort after priced ones when members sort by price). Send `0` for both to mark the event as free. Send the same value twice for a single price.",
+                  "disabled": true
+                },
+                {
+                  "key": "price_max",
+                  "value": "0",
+                  "type": "text",
+                  "description": "Ticket price, shown to members. Omit both to show no price (such events sort after priced ones when members sort by price). Send `0` for both to mark the event as free. Send the same value twice for a single price.",
+                  "disabled": true
+                },
+                {
+                  "key": "currency",
+                  "value": "",
+                  "type": "text",
+                  "description": "Currency of the ticket price, one of [`GET /event-currencies`](https://www.agilis.dating/api-doc#eventCurrenciesSectionid). Required whenever a price is supplied. It describes the ticket price only and has no effect on what you are charged.",
+                  "disabled": true
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "description": "JPG or PNG, detected from the file's content (not its name), up to **10 MB**, at least **1280 × 720** pixels. Members see events at 16:9: the image is scaled to fill a 16:9 frame with its centre kept and the overflow trimmed (a *centred cover crop*), never stretched or letterboxed. Pass `crop[x]`, `crop[y]`, `crop[w]` to choose the area yourself. If the area would be below 1280 × 720 the image is rejected rather than enlarged. Every image is decoded and re-encoded (so only a fresh copy is stored, with EXIF data including GPS removed), content-moderated, and scanned. Use `POST /events/preview` to see the result before paying.",
+                  "disabled": true
+                },
+                {
+                  "key": "preview_token",
+                  "value": "",
+                  "type": "text",
+                  "description": "From `POST /events/preview`. Publishes exactly the image you previewed, with the crop you saw. Single-use.",
+                  "disabled": true
+                },
+                {
+                  "key": "source_event_id",
+                  "value": "1",
+                  "type": "text",
+                  "description": "Reuse the image of one of your organisation's existing events, for example last week's class. The image is copied to the new event (not shared) and is not moderated again. Send `crop[]` on a later `PATCH` to re-frame it.",
+                  "disabled": true
+                },
+                {
+                  "key": "crop[x",
+                  "value": "1",
+                  "type": "text",
+                  "description": "With `image` only: the 16:9 area to use. See Preview Event.",
+                  "disabled": true
+                },
+                {
+                  "key": "crop[y",
+                  "value": "1",
+                  "type": "text",
+                  "description": "With `image` only: the 16:9 area to use. See Preview Event.",
+                  "disabled": true
+                },
+                {
+                  "key": "crop[w",
+                  "value": "1",
+                  "type": "text",
+                  "description": "With `image` only: the 16:9 area to use. See Preview Event.",
+                  "disabled": true
+                },
+                {
+                  "key": "payment_method",
+                  "value": "B",
+                  "type": "text",
+                  "description": "`B` — pay from your balance. Payment by Stripe link is not available for events.",
+                  "disabled": false
+                },
+                {
+                  "key": "environment",
+                  "value": "TEST",
+                  "type": "text",
+                  "description": "`TEST` or `LIVE`. Must be your API key's own mode: a `pk_live_` key publishes LIVE events only, a `pk_test_` key TEST events only (HTTP 403 otherwise). A TEST event is validated, classified and moderated in full, including the balance check against your TEST balance, but is never charged, never invoiced and never shown to members.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "View Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events?environment=test",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "events"
+              ],
+              "query": [
+                {
+                  "key": "environment",
+                  "value": "test",
+                  "disabled": false,
+                  "description": "`test` or `live`. Case-insensitive. Must be your API key's own mode."
+                },
+                {
+                  "key": "limit",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "Between 1 and 100. Default `20`."
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "disabled": true,
+                  "description": "The `next_cursor` from the previous page."
+                },
+                {
+                  "key": "event_status",
+                  "value": "upcoming",
+                  "disabled": true,
+                  "description": "One of `upcoming`, `scheduled`, `rescheduled`, `cancelled` or `ended`."
+                },
+                {
+                  "key": "owner_user_id",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "Organisation admins: only the events created by this user."
+                },
+                {
+                  "key": "created_after",
+                  "value": "",
+                  "disabled": true,
+                  "description": "ISO 8601, UTC only."
+                },
+                {
+                  "key": "created_before",
+                  "value": "",
+                  "disabled": true,
+                  "description": "ISO 8601, UTC only."
+                }
+              ],
+              "variable": []
+            },
+            "description": "Returns events, newest first, with cursor pagination in the same envelope as `GET /offers`. **Who sees what:** an organisation admin's key sees every event in the organisation, whoever created it; a developer's key sees the whole organisation's events read-only; an advertiser's key sees its own. `attendees` is always a **band** (`<10`, `10-25`, `26-50`, `50+`), never an exact number: member privacy comes first, and an exact count on a small event would let attendance be inferred.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        },
+        {
+          "name": "View Event",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/:event_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "events",
+                ":event_id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "event_id",
+                  "value": "",
+                  "description": "Path parameter. Example: `3104`"
+                }
+              ]
+            },
+            "description": "One event: the same fields as the list, plus what it cost (`listing_price`, `billing_currency`, `invoice_id`), whether you may change it (`can_manage`, `can_delete`), whether members have interacted with it, the stored image's size and crop (`image_master`), and its `history`: every action taken on it, by whom and when.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        },
+        {
+          "name": "Edit Event [write]",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/:event_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "events",
+                ":event_id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "event_id",
+                  "value": "",
+                  "description": "Path parameter. Example: `3104`"
+                }
+              ]
+            },
+            "description": "Changes a published event, **free of charge**. Send only the fields to change. Editable: title, description, booking page, ticket price, venue and image. **Not dates** — use Reschedule. A wording change re-determines the category, which the response returns; preview first if you want to see it. A new image goes through the same checks as on publish and is stored at new URLs (invitations already sent keep the picture they were sent with). Members see the change within a few minutes. When uploading a file, send the request as `POST` with the header `X-HTTP-Method-Override: PATCH`, because file uploads need a POST body. **You remain responsible for telling everyone who booked through your own booking system** about any change; Agilis may notify its members but does not guarantee it.\n\nReference: https://ads.agilis.dating/api-doc",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "",
+                  "type": "text",
+                  "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody.",
+                  "disabled": true
+                },
+                {
+                  "key": "description",
+                  "value": "",
+                  "type": "text",
+                  "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody.",
+                  "disabled": true
+                },
+                {
+                  "key": "url",
+                  "value": "",
+                  "type": "text",
+                  "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody.",
+                  "disabled": true
+                },
+                {
+                  "key": "advertised_name",
+                  "value": "",
+                  "type": "text",
+                  "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody.",
+                  "disabled": true
+                },
+                {
+                  "key": "venue_name",
+                  "value": "",
+                  "type": "text",
+                  "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody.",
+                  "disabled": true
+                },
+                {
+                  "key": "address",
+                  "value": "",
+                  "type": "text",
+                  "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody.",
+                  "disabled": true
+                },
+                {
+                  "key": "city",
+                  "value": "",
+                  "type": "text",
+                  "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody.",
+                  "disabled": true
+                },
+                {
+                  "key": "country_code",
+                  "value": "",
+                  "type": "text",
+                  "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody.",
+                  "disabled": true
+                },
+                {
+                  "key": "location",
+                  "value": "",
+                  "type": "text",
+                  "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody.",
+                  "disabled": true
+                },
+                {
+                  "key": "price_min",
+                  "value": "",
+                  "type": "text",
+                  "description": "A price change must send all three (all blank to show no price).",
+                  "disabled": true
+                },
+                {
+                  "key": "price_max",
+                  "value": "",
+                  "type": "text",
+                  "description": "A price change must send all three (all blank to show no price).",
+                  "disabled": true
+                },
+                {
+                  "key": "currency",
+                  "value": "",
+                  "type": "text",
+                  "description": "A price change must send all three (all blank to show no price).",
+                  "disabled": true
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "description": "A replacement picture. Same rules as on publish; moderated.",
+                  "disabled": true
+                },
+                {
+                  "key": "preview_token",
+                  "value": "",
+                  "type": "text",
+                  "description": "Alternatives to `image`, as on publish.",
+                  "disabled": true
+                },
+                {
+                  "key": "source_event_id",
+                  "value": "",
+                  "type": "text",
+                  "description": "Alternatives to `image`, as on publish.",
+                  "disabled": true
+                },
+                {
+                  "key": "crop[x",
+                  "value": "1",
+                  "type": "text",
+                  "description": "On its own: re-frame the existing image from the stored original, no re-upload and no re-moderation. With `image`: the area of the new picture.",
+                  "disabled": true
+                },
+                {
+                  "key": "crop[y",
+                  "value": "1",
+                  "type": "text",
+                  "description": "On its own: re-frame the existing image from the stored original, no re-upload and no re-moderation. With `image`: the area of the new picture.",
+                  "disabled": true
+                },
+                {
+                  "key": "crop[w",
+                  "value": "1",
+                  "type": "text",
+                  "description": "On its own: re-frame the existing image from the stored original, no re-upload and no re-moderation. With `image`: the area of the new picture.",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Event [write]",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/:event_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "events",
+                ":event_id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "event_id",
+                  "value": "",
+                  "description": "Path parameter. Example: `3104`"
+                }
+              ]
+            },
+            "description": "Removes an event that no member has interacted with yet, for example one published by mistake. Once any member has marked themselves as going, invited someone, or opened your booking page, the event can no longer be deleted: cancel it instead, so those members are told. Deleting does not return the listing fee.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        },
+        {
+          "name": "Reschedule Event [write]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/:event_id/reschedule",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "events",
+                ":event_id",
+                "reschedule"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "event_id",
+                  "value": "",
+                  "description": "Path parameter. Example: `3104`"
+                }
+              ]
+            },
+            "description": "Moves a published event to a new date, at no charge. Within a few minutes the app shows the new date, and anyone who had accepted an invitation to the event is asked to confirm again, because nobody has agreed to the new date yet. **You are responsible for informing everyone who booked through your own booking system** of the change and the reason for it; Agilis may notify its members but does not guarantee it, and is not responsible for communication about your event. Use this rather than cancelling and publishing again.\n\nReference: https://ads.agilis.dating/api-doc",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"starts_at\": \"\",\n  \"ends_at\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cancel Event [write]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/:event_id/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "events",
+                ":event_id",
+                "cancel"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "event_id",
+                  "value": "",
+                  "description": "Path parameter. Example: `3104`"
+                }
+              ]
+            },
+            "description": "Cancels a published event. **Irreversible, and the listing fee is not refunded.** Within a few minutes the app marks it cancelled and every open or accepted invitation to it is cancelled. **You are responsible for informing everyone who booked through your own booking system**; Agilis may notify its members but does not guarantee it. Please cancel rather than leaving a listing up for an event that is not running, so nobody turns up to a closed door. No request body.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        },
+        {
+          "name": "View Event Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/:event_id/analytics?interval=24h",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "events",
+                ":event_id",
+                "analytics"
+              ],
+              "query": [
+                {
+                  "key": "interval",
+                  "value": "24h",
+                  "disabled": false,
+                  "description": "One of `24h`, `7d`, `30d`, `60d`, `90d` or `all`."
+                }
+              ],
+              "variable": [
+                {
+                  "key": "event_id",
+                  "value": "",
+                  "description": "Path parameter. Example: `3104`"
+                }
+              ]
+            },
+            "description": "Returns engagement for one event over the requested interval. Figures are refreshed every few minutes; `as_of` says when, and is `null` until the first member interaction.\n\nReference: https://ads.agilis.dating/api-doc"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://ads.agilis.dating"
+    }
+  ]
+}

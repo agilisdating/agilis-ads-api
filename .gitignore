@@ -1,0 +1,15 @@
+# Secrets: never commit API keys
+.env
+.env.*
+!.env.example
+*.pem
+
+# Tooling
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+vendor/
+.DS_Store
+.idea/
+.vscode/
