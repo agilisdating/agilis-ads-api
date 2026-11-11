@@ -5,6 +5,7 @@ Changes to these examples. Changes to the API itself are announced in the [API r
 ## Unreleased
 
 - How to connect an AI assistant to the Agilis MCP server: [docs/mcp.md](docs/mcp.md).
+- The MCP server's address is `https://ads.agilis.dating/api/mcp`.
 
 ## 2026-11-11
 
