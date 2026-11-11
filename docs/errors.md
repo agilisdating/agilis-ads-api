@@ -28,7 +28,7 @@ The meaning of a code depends on the endpoint: `E2` on `POST /offers` isn't `E2`
 - **60 requests a minute per API key**, across every endpoint, uploads included.
 - Responses carry `X-RateLimit-Limit` and `X-RateLimit-Remaining`.
 - Over the limit you get HTTP `429` and a `Retry-After` header: the number of seconds to wait. Wait that long, then retry.
-- Too many requests with **wrong** keys from one IP address are refused with `429` for a while, whatever key is sent next.
+- Repeated requests with an invalid key are refused for a while with `429` and `Retry-After`: check your key, then wait for `Retry-After`.
 - `POST /events/preview` has its own limit of 60 previews per organisation per hour (`E8`, HTTP 429).
 
 ## Retrying safely: `Idempotency-Key`

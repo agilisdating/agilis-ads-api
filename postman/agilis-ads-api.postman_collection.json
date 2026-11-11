@@ -680,7 +680,7 @@
                   "key": "image",
                   "type": "file",
                   "src": [],
-                  "description": "JPG or PNG, detected from the file's content (not its name), up to **10 MB**, at least **1280 × 720** pixels. Members see events at 16:9: the image is scaled to fill a 16:9 frame with its centre kept and the overflow trimmed (a *centred cover crop*), never stretched or letterboxed. Pass `crop[x]`, `crop[y]`, `crop[w]` to choose the area yourself. If the area would be below 1280 × 720 the image is rejected rather than enlarged. Every image is decoded and re-encoded (so only a fresh copy is stored, with EXIF data including GPS removed), content-moderated, and scanned. Use `POST /events/preview` to see the result before paying.",
+                  "description": "JPG or PNG, detected from the file's content (not its name), up to **10 MB**, at least **1280 × 720** pixels. Members see events at 16:9: the image is scaled to fill a 16:9 frame with its centre kept and the overflow trimmed (a *centred cover crop*), never stretched or letterboxed. Pass `crop[x]`, `crop[y]`, `crop[w]` to choose the area yourself. If the area would be below 1280 × 720 the image is rejected rather than enlarged. Every image is decoded and re-encoded (so only a fresh copy is stored, with EXIF data including GPS removed), and content-moderated. Use `POST /events/preview` to see the result before paying.",
                   "disabled": true
                 },
                 {
@@ -854,7 +854,7 @@
                   "key": "image",
                   "type": "file",
                   "src": [],
-                  "description": "JPG or PNG, detected from the file's content (not its name), up to **10 MB**, at least **1280 × 720** pixels. Members see events at 16:9: the image is scaled to fill a 16:9 frame with its centre kept and the overflow trimmed (a *centred cover crop*), never stretched or letterboxed. Pass `crop[x]`, `crop[y]`, `crop[w]` to choose the area yourself. If the area would be below 1280 × 720 the image is rejected rather than enlarged. Every image is decoded and re-encoded (so only a fresh copy is stored, with EXIF data including GPS removed), content-moderated, and scanned. Use `POST /events/preview` to see the result before paying.",
+                  "description": "JPG or PNG, detected from the file's content (not its name), up to **10 MB**, at least **1280 × 720** pixels. Members see events at 16:9: the image is scaled to fill a 16:9 frame with its centre kept and the overflow trimmed (a *centred cover crop*), never stretched or letterboxed. Pass `crop[x]`, `crop[y]`, `crop[w]` to choose the area yourself. If the area would be below 1280 × 720 the image is rejected rather than enlarged. Every image is decoded and re-encoded (so only a fresh copy is stored, with EXIF data including GPS removed), and content-moderated. Use `POST /events/preview` to see the result before paying.",
                   "disabled": true
                 },
                 {
@@ -868,7 +868,7 @@
                   "key": "source_event_id",
                   "value": "1",
                   "type": "text",
-                  "description": "Reuse the image of one of your organisation's existing events, for example last week's class. The image is copied to the new event (not shared) and is not moderated again. Send `crop[]` on a later `PATCH` to re-frame it.",
+                  "description": "Reuse the image of one of your organisation's existing events, for example last week's class. The image is copied to the new event (not shared). Send `crop[]` on a later `PATCH` to re-frame it.",
                   "disabled": true
                 },
                 {
@@ -1167,21 +1167,21 @@
                   "key": "crop[x",
                   "value": "1",
                   "type": "text",
-                  "description": "On its own: re-frame the existing image from the stored original, no re-upload and no re-moderation. With `image`: the area of the new picture.",
+                  "description": "On its own: re-frame the existing image from the stored original, with no re-upload. With `image`: the area of the new picture.",
                   "disabled": true
                 },
                 {
                   "key": "crop[y",
                   "value": "1",
                   "type": "text",
-                  "description": "On its own: re-frame the existing image from the stored original, no re-upload and no re-moderation. With `image`: the area of the new picture.",
+                  "description": "On its own: re-frame the existing image from the stored original, with no re-upload. With `image`: the area of the new picture.",
                   "disabled": true
                 },
                 {
                   "key": "crop[w",
                   "value": "1",
                   "type": "text",
-                  "description": "On its own: re-frame the existing image from the stored original, no re-upload and no re-moderation. With `image`: the area of the new picture.",
+                  "description": "On its own: re-frame the existing image from the stored original, with no re-upload. With `image`: the area of the new picture.",
                   "disabled": true
                 }
               ]

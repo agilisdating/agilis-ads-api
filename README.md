@@ -67,7 +67,7 @@ Import [postman/agilis-ads-api.postman_collection.json](postman/agilis-ads-api.p
 
 - Send your key in the `x-api-key` header on every request.
 - **60 requests a minute per API key**, across every endpoint, uploads included. Over the limit you get HTTP `429` with a `Retry-After` header: wait that many seconds.
-- Any wrong, expired or disabled key gets the same HTTP `401` `{"message": "Unauthorised"}`. Repeated wrong keys from one IP address are blocked for a while.
+- Any wrong, expired or disabled key gets the same HTTP `401` `{"message": "Unauthorised"}`. Repeated requests with an invalid key are refused for a while with `429` and `Retry-After`.
 - `environment` must match your key's mode: a `pk_test_` key works with `environment=test` / `TEST` only.
 - `POST /offers` and `POST /events` need an `Idempotency-Key` header. Retrying with the same key never creates a duplicate or a second payment.
 
