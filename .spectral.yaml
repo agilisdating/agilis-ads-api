@@ -264,10 +264,12 @@ rules:
     severity: warn
     given: "$.paths[*][get,put,post,delete,patch].responses['400','401','403','404','409','422']"
     then:
-      field: content.application/json.schema.$ref
-      function: pattern
-      functionOptions:
-        match: "#/components/schemas/ReturnCode$"
+      - field: content.application/json.schema.$ref
+        function: truthy
+      - field: content.application/json.schema.$ref
+        function: pattern
+        functionOptions:
+          match: "#/components/schemas/ReturnCode$"
 
   agilis-request-body-example:
     description: A JSON or form request body carries an example.
