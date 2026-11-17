@@ -1,0 +1,283 @@
+# Agilis Advertising API: OpenAPI ruleset for Spectral (https://github.com/stoplightio/spectral).
+#
+# Lints https://www.agilis.dating/openapi.json. Run it yourself:
+#   npx @stoplight/spectral-cli lint --ruleset .spectral.yaml https://www.agilis.dating/openapi.json
+#
+# error: the contract must meet it. warn: a known gap being worked on. info: style advice.
+
+extends:
+  - spectral:oas
+
+formats:
+  - oas3_1
+
+rules:
+  # ── API-wide ────────────────────────────────────────────────────────────
+  agilis-server-is-production:
+    description: The only server is https://ads.agilis.dating (Test or Live is chosen by the API key).
+    severity: error
+    given: "$.servers[*].url"
+    then:
+      function: enumeration
+      functionOptions:
+        values:
+          - https://ads.agilis.dating
+
+  agilis-api-key-in-header:
+    description: Authentication is an API key in the x-api-key header.
+    severity: error
+    given: "$.components.securitySchemes.apiKey"
+    then:
+      - field: type
+        function: enumeration
+        functionOptions:
+          values: [apiKey]
+      - field: in
+        function: enumeration
+        functionOptions:
+          values: [header]
+      - field: name
+        function: enumeration
+        functionOptions:
+          values: [x-api-key]
+
+  agilis-security-applies-everywhere:
+    description: The API key applies to every operation.
+    severity: error
+    given: "$"
+    then:
+      field: security
+      function: truthy
+
+  agilis-info-contact-email:
+    description: The description names a support address.
+    severity: error
+    given: "$.info.contact"
+    then:
+      field: email
+      function: truthy
+
+  agilis-info-terms-of-service:
+    description: Terms of service point to the Agilis Advertising Terms.
+    severity: error
+    given: "$.info"
+    then:
+      field: termsOfService
+      function: pattern
+      functionOptions:
+        match: "^https://www\\.agilis\\.dating/business/terms$"
+
+  agilis-known-tags:
+    description: Tags are the two products, Offers and Events.
+    severity: error
+    given: "$.tags[*].name"
+    then:
+      function: enumeration
+      functionOptions:
+        values: [Offers, Events]
+
+  # ── Paths ───────────────────────────────────────────────────────────────
+  agilis-path-kebab-case:
+    description: Path segments are lower-case kebab-case; path parameters are snake_case.
+    severity: error
+    given: "$.paths"
+    then:
+      field: "@key"
+      function: pattern
+      functionOptions:
+        match: "^(/([a-z0-9]+(-[a-z0-9]+)*|\\{[a-z][a-z0-9_]*\\}))+$"
+
+  # ── Operations ──────────────────────────────────────────────────────────
+  agilis-operation-id-camel-case:
+    description: operationId is lowerCamelCase and starts with a verb.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch]"
+    then:
+      field: operationId
+      function: pattern
+      functionOptions:
+        match: "^(list|get|create|estimate|pause|resume|delete|preview|publish|edit|reschedule|cancel|update|restore)[A-Z][A-Za-z0-9]*$"
+
+  agilis-operation-summary:
+    description: Every operation has a short summary.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch]"
+    then:
+      field: summary
+      function: truthy
+
+  agilis-operation-summary-short:
+    description: Summaries stay short enough for a menu (40 characters).
+    severity: info
+    given: "$.paths[*][get,put,post,delete,patch].summary"
+    then:
+      function: length
+      functionOptions:
+        max: 40
+
+  agilis-operation-description:
+    description: Every operation has a description.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch]"
+    then:
+      field: description
+      function: truthy
+
+  agilis-operation-one-tag:
+    description: Every operation belongs to exactly one product tag.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch]"
+    then:
+      field: tags
+      function: length
+      functionOptions:
+        min: 1
+        max: 1
+
+  agilis-operation-links-reference:
+    description: Every operation links its section of the API reference.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch]"
+    then:
+      field: externalDocs.url
+      function: pattern
+      functionOptions:
+        match: "^https://www\\.agilis\\.dating/api-doc#"
+
+  agilis-idempotency-key-on-create:
+    description: Creating an Offer or publishing an Event takes an Idempotency-Key header, so a retry never charges twice.
+    severity: error
+    given:
+      - "$.paths['/offers'].post.parameters"
+      - "$.paths['/events'].post.parameters"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          contains:
+            type: object
+            required: [name, in]
+            properties:
+              name:
+                const: Idempotency-Key
+              in:
+                const: header
+
+  # ── Parameters ──────────────────────────────────────────────────────────
+  agilis-query-parameter-snake-case:
+    description: Query parameters are snake_case.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch].parameters[?(@.in == 'query')]"
+    then:
+      field: name
+      function: pattern
+      functionOptions:
+        match: "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+
+  agilis-parameter-description:
+    description: Every parameter is described.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch].parameters[*]"
+    then:
+      field: description
+      function: truthy
+
+  agilis-parameter-schema:
+    description: Every parameter has a schema.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch].parameters[*]"
+    then:
+      field: schema
+      function: truthy
+
+  agilis-page-size-bounded:
+    description: A page-size parameter states its maximum.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch].parameters[?(@.name == 'limit')].schema"
+    then:
+      field: maximum
+      function: truthy
+
+  # ── Responses ───────────────────────────────────────────────────────────
+  agilis-success-response:
+    description: Every operation documents its 200 response.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch].responses"
+    then:
+      field: "200"
+      function: truthy
+
+  agilis-rate-limit-response:
+    description: Every operation documents 429 (60 requests a minute per key).
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch].responses"
+    then:
+      field: "429"
+      function: truthy
+
+  agilis-rate-limit-retry-after:
+    description: A 429 response states its Retry-After header.
+    severity: warn
+    given: "$.paths[*][get,put,post,delete,patch].responses['429']"
+    then:
+      field: headers.Retry-After
+      function: truthy
+
+  agilis-response-description:
+    description: Every response is described.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch].responses[*]"
+    then:
+      field: description
+      function: truthy
+
+  agilis-unauthorised-response:
+    description: Operations document 401 for an invalid key.
+    severity: warn
+    given: "$.paths[*][get,put,post,delete,patch].responses"
+    then:
+      field: "401"
+      function: truthy
+
+  agilis-success-schema:
+    description: A 200 response describes its JSON body with a schema.
+    severity: warn
+    given: "$.paths[*][get,put,post,delete,patch].responses['200']"
+    then:
+      field: content.application/json.schema
+      function: truthy
+
+  agilis-success-example:
+    description: A 200 response carries an example.
+    severity: warn
+    given: "$.paths[*][get,put,post,delete,patch].responses['200']"
+    then:
+      function: xor
+      functionOptions:
+        properties:
+          - content.application/json.example
+          - content.application/json.examples
+
+  agilis-error-envelope:
+    description: Error responses use the ReturnCode envelope (return_code and message).
+    severity: warn
+    given: "$.paths[*][get,put,post,delete,patch].responses['400','401','403','404','409','422']"
+    then:
+      - field: content.application/json.schema.$ref
+        function: truthy
+      - field: content.application/json.schema.$ref
+        function: pattern
+        functionOptions:
+          match: "#/components/schemas/ReturnCode$"
+
+  agilis-request-body-example:
+    description: A JSON or form request body carries an example.
+    severity: info
+    given: "$.paths[*][get,put,post,delete,patch].requestBody.content[*]"
+    then:
+      function: xor
+      functionOptions:
+        properties:
+          - example
+          - examples

@@ -1,0 +1,33 @@
+name: OpenAPI lint
+
+# Lints the published OpenAPI description against this repository's ruleset (.spectral.yaml).
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Download the OpenAPI description
+        run: |
+          curl --fail --silent --show-error --location \
+            --user-agent "agilis-ads-api-openapi-lint/1.0 (+https://github.com/agilisdating/agilis-ads-api)" \
+            --output openapi.json https://www.agilis.dating/openapi.json
+
+      - name: Lint
+        run: npx --yes @stoplight/spectral-cli@6 lint openapi.json --ruleset .spectral.yaml --fail-severity error
