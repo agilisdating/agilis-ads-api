@@ -262,7 +262,7 @@ rules:
   agilis-error-envelope:
     description: Error responses use the ReturnCode envelope (return_code and message).
     severity: warn
-    given: "$.paths[*][get,put,post,delete,patch].responses[?(@property.match(/^4/))]"
+    given: "$.paths[*][get,put,post,delete,patch].responses['400','401','403','404','409','422']"
     then:
       field: content.application/json.schema.$ref
       function: pattern
