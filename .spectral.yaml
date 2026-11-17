@@ -251,17 +251,18 @@ rules:
   agilis-success-example:
     description: A 200 response carries an example.
     severity: warn
-    given: "$.paths[*][get,put,post,delete,patch].responses['200']"
+    given: "$.paths[*][get,put,post,delete,patch].responses['200'].content['application/json']"
     then:
       function: xor
       functionOptions:
         properties:
-          - content.application/json.example
-          - content.application/json.examples
+          - example
+          - examples
 
   agilis-error-envelope:
     description: Error responses use the ReturnCode envelope (return_code and message).
     severity: warn
+    resolved: false
     given: "$.paths[*][get,put,post,delete,patch].responses['400','401','403','404','409','422']"
     then:
       - field: content.application/json.schema.$ref
