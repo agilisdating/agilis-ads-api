@@ -59,6 +59,10 @@ All of them read `AGILIS_API_KEY` (and optionally `AGILIS_API_BASE`) from the en
 
 A step-by-step Test Offer, from finding a category to reading its results, is in [docs/walkthrough-offer.md](docs/walkthrough-offer.md).
 
+## SDK examples
+
+The official SDKs for Node.js, Python, PHP, .NET, Java, Go and Ruby are listed in the [API reference](https://www.agilis.dating/api-doc#sdksSection). [examples/sdk](examples/sdk) holds the reference's request example for every endpoint in each of them, and CI checks that every one compiles against its SDK.
+
 ## Webhooks: checking the signature
 
 Agilis signs every webhook message with your endpoint's secret in the `Agilis-Signature` header. [examples/webhooks](examples/webhooks) checks it, without any library, in Node.js, Python, PHP, C#, Java, Go and Ruby. Each reads the raw body from a file and the header and secret from `AGILIS_SIGNATURE` and `AGILIS_WEBHOOK_SECRET`:

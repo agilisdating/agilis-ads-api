@@ -4,6 +4,7 @@ Changes to these examples. Changes to the API itself are announced in the [API r
 
 ## Unreleased
 
+- The request example for every endpoint of the API reference, for each official SDK (Node.js, Python, PHP, C#, Java, Go and Ruby), checked in CI against each SDK: [examples/sdk](examples/sdk).
 - How to connect an AI assistant to the Agilis MCP server: [docs/mcp.md](docs/mcp.md).
 - The MCP server's address is `https://ads.agilis.dating/api/mcp`.
 - MCP write tools for Test keys: create and manage Test Offers and Events from your assistant.

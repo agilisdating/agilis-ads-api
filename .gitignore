@@ -13,3 +13,12 @@ vendor/
 .DS_Store
 .idea/
 .vscode/
+
+# SDK example builds
+_sdk/
+_classes/
+bin/
+obj/
+package-lock.json
+composer.lock
+go.sum
