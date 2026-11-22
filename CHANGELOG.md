@@ -7,6 +7,8 @@ Changes to these examples. Changes to the API itself are announced in the [API r
 - How to connect an AI assistant to the Agilis MCP server: [docs/mcp.md](docs/mcp.md).
 - The MCP server's address is `https://ads.agilis.dating/api/mcp`.
 - MCP write tools for Test keys: create and manage Test Offers and Events from your assistant.
+- Webhook signature checks in Node.js, Python, PHP, C#, Java, Go and Ruby: [examples/webhooks](examples/webhooks).
+- The OpenAPI ruleset knows the Webhooks operations, and the AsyncAPI description of the webhook messages is validated.
 
 ## 2026-11-11
 

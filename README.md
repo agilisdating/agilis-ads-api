@@ -59,6 +59,16 @@ All of them read `AGILIS_API_KEY` (and optionally `AGILIS_API_BASE`) from the en
 
 A step-by-step Test Offer, from finding a category to reading its results, is in [docs/walkthrough-offer.md](docs/walkthrough-offer.md).
 
+## Webhooks: checking the signature
+
+Agilis signs every webhook message with your endpoint's secret in the `Agilis-Signature` header. [examples/webhooks](examples/webhooks) checks it, without any library, in Node.js, Python, PHP, C#, Java, Go and Ruby. Each reads the raw body from a file and the header and secret from `AGILIS_SIGNATURE` and `AGILIS_WEBHOOK_SECRET`:
+
+```bash
+node examples/webhooks/verify.js body.json
+```
+
+The event types, an example of each message and the verification steps are in the [API reference](https://www.agilis.dating/api-doc#webhooksSection). The messages are also described in [AsyncAPI 3.0](https://www.agilis.dating/asyncapi.json) and in the OpenAPI description, under `webhooks`.
+
 ## Postman
 
 Import [postman/agilis-ads-api.postman_collection.json](postman/agilis-ads-api.postman_collection.json) and the Test environment [postman/agilis-ads-api-test.postman_environment.json](postman/agilis-ads-api-test.postman_environment.json), then set `api_key` to your Test key. Requests that create something or can spend money are marked **[write]** and **[spends]**. The collection is generated from the OpenAPI description by [tools/build_postman.py](tools/build_postman.py).
