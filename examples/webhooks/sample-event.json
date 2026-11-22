@@ -1,0 +1,52 @@
+{
+    "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+    "object": "webhook_event",
+    "type": "offer.ended",
+    "created": 1795075200,
+    "livemode": true,
+    "version": 1,
+    "data": {
+        "object": {
+            "offer_id": 45,
+            "title": "20% off summer sale",
+            "category": "Retail",
+            "description": "Discount valid through July",
+            "terms_and_conditions": "Valid online only.",
+            "advertised_name": null,
+            "push_notification_title": "20% off this summer",
+            "push_notification_message": "Show this at the till for 20% off everything until the end of July.",
+            "button_preset": "claim_offer",
+            "button_text": null,
+            "url": "https://advertiseroffer.com",
+            "image": "https://ads.agilis.dating/92/offers/45/offer_orig.png",
+            "latitude": 51.5074,
+            "longitude": -0.1278,
+            "radius": 10,
+            "gender": [
+                "Male",
+                "Female"
+            ],
+            "interests": [
+                {
+                    "interest_id": 3,
+                    "interest_name": "Cooking"
+                },
+                {
+                    "interest_id": 7,
+                    "interest_name": "Fitness"
+                }
+            ],
+            "start_datetime": "2027-07-10T08:00:00Z",
+            "expiry_datetime": "2027-07-12T20:30:00Z",
+            "creation_datetime": "2027-06-01T10:00:00Z",
+            "offer_status": "Active",
+            "status": "enabled"
+        },
+        "unused_time_credited": 0.0,
+        "currency": "GBP"
+    },
+    "request": {
+        "source": "system",
+        "idempotency_key": null
+    }
+}

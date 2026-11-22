@@ -1,0 +1,73 @@
+name: Webhook signature samples
+
+# Signs examples/webhooks/sample-event.json with a throwaway secret, then checks that the
+# sample in every language accepts it and rejects a changed body.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/webhooks
+    env:
+      AGILIS_WEBHOOK_SECRET: whsec_ci_throwaway_secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Sign the sample event
+        run: |
+          t=$(date +%s)
+          sig=$(python3 -c "import hmac,hashlib,os,sys; b=open('sample-event.json','rb').read(); print(hmac.new(os.environ['AGILIS_WEBHOOK_SECRET'].encode(), sys.argv[1].encode()+b'.'+b, hashlib.sha256).hexdigest())" "$t")
+          echo "AGILIS_SIGNATURE=t=$t,v1=$sig" >> "$GITHUB_ENV"
+          { printf ' '; cat sample-event.json; } > changed-event.json
+
+      - name: Build the .NET sample
+        run: dotnet build dotnet --nologo -v quiet
+
+      - name: Every sample accepts the signed event and rejects a changed one
+        run: |
+          set -u
+          run() {
+            name="$1"; shift
+            "$@" sample-event.json || { echo "::error::$name rejected a correctly signed event"; exit 1; }
+            if "$@" changed-event.json 2>/dev/null; then echo "::error::$name accepted a changed body"; exit 1; fi
+            echo "$name ok"
+          }
+          run node   node verify.js
+          run python python3 verify.py
+          run php    php verify.php
+          run dotnet dotnet run --project dotnet --no-build --
+          run java   java Verify.java
+          run go     go run verify.go
+          run ruby   ruby verify.rb

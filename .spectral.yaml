@@ -68,13 +68,13 @@ rules:
         match: "^https://www\\.agilis\\.dating/business/terms$"
 
   agilis-known-tags:
-    description: Tags are the two products, Offers and Events.
+    description: Tags are the products, Offers and Events, and Webhooks.
     severity: error
     given: "$.tags[*].name"
     then:
       function: enumeration
       functionOptions:
-        values: [Offers, Events]
+        values: [Offers, Events, Webhooks]
 
   # ── Paths ───────────────────────────────────────────────────────────────
   agilis-path-kebab-case:
@@ -96,7 +96,7 @@ rules:
       field: operationId
       function: pattern
       functionOptions:
-        match: "^(list|get|create|estimate|pause|resume|delete|preview|publish|edit|reschedule|cancel|update|restore)[A-Z][A-Za-z0-9]*$"
+        match: "^(list|get|create|estimate|pause|resume|delete|preview|publish|edit|reschedule|cancel|update|restore|roll|send|resend)[A-Z][A-Za-z0-9]*$"
 
   agilis-operation-summary:
     description: Every operation has a short summary.

@@ -1,0 +1,31 @@
+name: AsyncAPI validate
+
+# Validates the published AsyncAPI description of the webhook messages.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Download the AsyncAPI description
+        run: |
+          curl --fail --silent --show-error --location \
+            --user-agent "agilis-ads-api-asyncapi-validate/1.0 (+https://github.com/agilisdating/agilis-ads-api)" \
+            --output asyncapi.json https://www.agilis.dating/asyncapi.json
+
+      - name: Validate
+        run: npx --yes @asyncapi/cli validate asyncapi.json --fail-severity=error
