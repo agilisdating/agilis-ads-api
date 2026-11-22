@@ -1,0 +1,148 @@
+name: SDK examples
+
+# Installs each official SDK from the main branch of its GitHub repository and checks that
+# every example in examples/sdk compiles against it. Nothing calls the API.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: agilisdating/agilis-ads-node
+          ref: main
+          path: _sdk
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build the SDK
+        working-directory: _sdk
+        run: npm ci --no-audit --no-fund && npm run build
+      - name: Type-check every example
+        working-directory: examples/sdk/node
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-audit --no-fund --no-save ../../../_sdk
+          npx tsc -p . --noEmit
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the SDK and mypy
+        run: pip install "git+https://github.com/agilisdating/agilis-ads-python@main" mypy
+      - name: Compile and type-check every example
+        working-directory: examples/sdk/python
+        run: |
+          python -m py_compile *.py
+          python -c "import agilis_ads; agilis_ads.Agilis"
+          mypy --config-file mypy.ini .
+
+  php:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer
+      - name: Install the SDK and PHPStan
+        working-directory: examples/sdk/php
+        run: composer install --no-interaction --no-progress
+      - name: Lint and analyse every example
+        working-directory: examples/sdk/php
+        run: |
+          for f in *.php; do php -l "$f" > /dev/null || exit 1; done
+          vendor/bin/phpstan analyse --no-progress
+
+  dotnet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: agilisdating/agilis-ads-dotnet
+          ref: main
+          path: _sdk
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Build every example
+        run: dotnet build examples/sdk/dotnet --nologo -p:AgilisAdsProject="$GITHUB_WORKSPACE/_sdk/src/Agilis.Ads/Agilis.Ads.csproj"
+
+  java:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: agilisdating/agilis-ads-java
+          ref: main
+          path: _sdk
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Build the SDK
+        working-directory: _sdk
+        run: |
+          chmod +x mvnw
+          ./mvnw -B -q -DskipTests package
+          ./mvnw -B -q dependency:build-classpath -Dmdep.outputFile=classpath.txt
+      - name: Compile every example
+        run: |
+          jar=$(ls _sdk/target/agilis-ads-*.jar | grep -v -e sources -e javadoc | head -n 1)
+          mkdir -p _classes
+          javac -encoding UTF-8 -Xlint:all -d _classes -cp "$jar:$(cat _sdk/classpath.txt)" examples/sdk/java/*.java
+
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Vet and build every example
+        working-directory: examples/sdk/go
+        env:
+          GOFLAGS: -mod=mod
+        run: |
+          go get github.com/agilisdating/agilis-ads-go@main
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then echo "::error::Not gofmt-formatted: $unformatted"; exit 1; fi
+          go vet ./...
+          go build ./...
+
+  ruby:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: agilisdating/agilis-ads-ruby
+          ref: main
+          path: _sdk
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+      - name: Install the SDK
+        working-directory: _sdk
+        run: gem build agilis-ads.gemspec && gem install --local agilis-ads-*.gem
+      - name: Check every example
+        working-directory: examples/sdk/ruby
+        run: |
+          for f in *.rb; do ruby -c "$f" > /dev/null || exit 1; done
+          ruby check_methods.rb
