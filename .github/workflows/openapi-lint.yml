@@ -54,7 +54,9 @@ jobs:
       - name: Validate each JSON Schema (2020-12)
         run: |
           for f in openapi/schemas/*.json; do
-            npx --yes ajv-cli@5 compile --spec=draft2020 --strict=false -r "openapi/schemas/*.json" -s "$f"
+            refs=()
+            for r in openapi/schemas/*.json; do [ "$r" != "$f" ] && refs+=(-r "$r"); done
+            npx --yes ajv-cli@5 compile --spec=draft2020 --strict=false "${refs[@]}" -s "$f"
           done
 
   breaking:
