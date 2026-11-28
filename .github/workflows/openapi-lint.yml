@@ -1,9 +1,17 @@
-name: OpenAPI lint
+name: Contract checks
 
-# Lints the published OpenAPI description against this repository's ruleset (.spectral.yaml).
+# Checks the Agilis Advertising API contract kept in openapi/ (a copy of what www.agilis.dating
+# publishes, refreshed by the weekly job below):
+#   - the overlay applies cleanly, and the presented document passes this repository's ruleset
+#     (.spectral.yaml);
+#   - every OpenAPI part, the AsyncAPI document and each JSON Schema is valid;
+#   - a pull request that changes the contract is checked for breaking changes against main.
+#     A breaking change fails unless the pull request has the label "breaking-change-approved",
+#     which is added only with an entry in the public change log.
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [main]
   schedule:
@@ -23,11 +31,79 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Download the OpenAPI description
-        run: |
-          curl --fail --silent --show-error --location \
-            --user-agent "agilis-ads-api-openapi-lint/1.0 (+https://github.com/agilisdating/agilis-ads-api)" \
-            --output openapi.json https://www.agilis.dating/openapi.json
+      - name: Use the live contract (scheduled and manual runs)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: bash tools/refresh-contract.sh
 
-      - name: Lint
-        run: npx --yes @stoplight/spectral-cli@6 lint openapi.json --ruleset .spectral.yaml --fail-severity error
+      - name: Apply the overlay
+        run: |
+          npm install --no-save --silent yaml@2
+          node tools/apply-overlay.mjs openapi/openapi.json openapi/overlay.yaml > presented.json
+
+      - name: Lint the contract and the presented document
+        run: |
+          for f in openapi/openapi.json openapi/parts/*.json presented.json; do
+            echo "::group::$f"
+            npx --yes @stoplight/spectral-cli@6 lint "$f" --ruleset .spectral.yaml --fail-severity error
+            echo "::endgroup::"
+          done
+
+      - name: Validate the AsyncAPI document
+        run: npx --yes @asyncapi/cli@2 validate openapi/asyncapi.json
+
+      - name: Validate each JSON Schema (2020-12)
+        run: |
+          for f in openapi/schemas/*.json; do
+            refs=()
+            for r in openapi/schemas/*.json; do [ "$r" != "$f" ] && refs+=(-r "$r"); done
+            npx --yes ajv-cli@5 compile --spec=draft2020 --strict=false "${refs[@]}" -s "$f"
+          done
+
+  breaking:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Contract on main
+        run: git show "origin/${{ github.base_ref }}:openapi/openapi.json" > base.json || cp openapi/openapi.json base.json
+
+      - name: Breaking changes
+        env:
+          APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'breaking-change-approved') }}
+        run: |
+          docker run --rm -v "$PWD:/specs" tufin/oasdiff:latest breaking /specs/base.json /specs/openapi/openapi.json --format text > breaking.txt || true
+          cat breaking.txt
+          if grep -q "error" breaking.txt; then
+            if [ "$APPROVED" = "true" ]; then
+              echo "Breaking change approved by label."
+            else
+              echo "::error::This pull request breaks the contract. Add the label breaking-change-approved only with an entry in the public change log."
+              exit 1
+            fi
+          fi
+
+  refresh:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download the live contract
+        run: bash tools/refresh-contract.sh
+
+      - name: Open a pull request when it has changed
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: contract-refresh
+          title: Refresh the contract copy from www.agilis.dating
+          commit-message: Refresh the contract copy from www.agilis.dating
+          body: The published contract changed. This pull request updates the copy in openapi/, and the contract checks run on it, including the breaking-change check.
+          author: Agilis <help@agilis.dating>
+          committer: Agilis <help@agilis.dating>
+          add-paths: openapi/**

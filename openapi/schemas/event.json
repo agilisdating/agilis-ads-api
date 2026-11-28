@@ -1,0 +1,93 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://www.agilis.dating/schemas/event.json",
+    "title": "Event",
+    "description": "An Event listing shown in the Events tab of the Agilis apps, in the mode of the API key that reads it.",
+    "type": "object",
+    "properties": {
+        "event_id": {
+            "type": "integer"
+        },
+        "title": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "category": {
+            "$ref": "https://www.agilis.dating/schemas/category.json"
+        },
+        "venue_name": {
+            "type": "string"
+        },
+        "address": {
+            "type": "string"
+        },
+        "city": {
+            "type": "string"
+        },
+        "country_code": {
+            "type": "string"
+        },
+        "latitude": {
+            "type": "number"
+        },
+        "longitude": {
+            "type": "number"
+        },
+        "starts_at": {
+            "type": "string"
+        },
+        "ends_at": {
+            "type": "string"
+        },
+        "url": {
+            "type": "string"
+        },
+        "advertised_name": {
+            "description": "Can be null."
+        },
+        "price_min": {
+            "type": "integer"
+        },
+        "price_max": {
+            "type": "integer"
+        },
+        "currency": {
+            "type": "string"
+        },
+        "image": {
+            "type": "string"
+        },
+        "image_large": {
+            "type": "string"
+        },
+        "image_thumb": {
+            "type": "string"
+        },
+        "event_status": {
+            "type": "string"
+        },
+        "attendees": {
+            "type": "string"
+        },
+        "owner": {
+            "type": "object"
+        },
+        "environment": {
+            "type": "string"
+        },
+        "reschedule_count": {
+            "type": "integer"
+        },
+        "cloned_from_event_id": {
+            "description": "Can be null."
+        },
+        "creation_datetime": {
+            "type": "string"
+        },
+        "last_edited_at": {
+            "description": "Can be null."
+        }
+    }
+}

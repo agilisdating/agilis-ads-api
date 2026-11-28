@@ -1,0 +1,79 @@
+{
+    "@context": {
+        "@version": 1.1,
+        "schema": "https://schema.org/",
+        "agilis": "https://www.agilis.dating/vocabulary.yml#",
+        "Offer": "schema:Offer",
+        "Event": "schema:Event",
+        "Place": "schema:Place",
+        "Organization": "schema:Organization",
+        "Category": "schema:CategoryCode",
+        "PostalAddress": "schema:PostalAddress",
+        "GeoCoordinates": "schema:GeoCoordinates",
+        "offer_id": "schema:identifier",
+        "event_id": "schema:identifier",
+        "title": "schema:name",
+        "description": "schema:description",
+        "url": {
+            "@id": "schema:url",
+            "@type": "@id"
+        },
+        "image": {
+            "@id": "schema:image",
+            "@type": "@id"
+        },
+        "image_large": {
+            "@id": "schema:image",
+            "@type": "@id"
+        },
+        "image_thumb": {
+            "@id": "schema:thumbnailUrl",
+            "@type": "@id"
+        },
+        "terms_and_conditions": "schema:termsOfService",
+        "category": "schema:category",
+        "category_id": "schema:codeValue",
+        "category_name": "schema:name",
+        "interests": "schema:keywords",
+        "interest_name": "schema:name",
+        "start_datetime": {
+            "@id": "schema:validFrom",
+            "@type": "schema:DateTime"
+        },
+        "expiry_datetime": {
+            "@id": "schema:validThrough",
+            "@type": "schema:DateTime"
+        },
+        "starts_at": {
+            "@id": "schema:startDate",
+            "@type": "schema:DateTime"
+        },
+        "ends_at": {
+            "@id": "schema:endDate",
+            "@type": "schema:DateTime"
+        },
+        "creation_datetime": {
+            "@id": "schema:dateCreated",
+            "@type": "schema:DateTime"
+        },
+        "last_edited_at": {
+            "@id": "schema:dateModified",
+            "@type": "schema:DateTime"
+        },
+        "price_min": "schema:minPrice",
+        "price_max": "schema:maxPrice",
+        "currency": "schema:priceCurrency",
+        "address": "schema:streetAddress",
+        "city": "schema:addressLocality",
+        "country_code": "schema:addressCountry",
+        "latitude": "schema:latitude",
+        "longitude": "schema:longitude",
+        "venue_name": "agilis:venue_name",
+        "advertised_name": "agilis:advertised_name",
+        "radius": "agilis:radius_miles",
+        "offer_status": "agilis:offer_status",
+        "event_status": "agilis:event_status",
+        "button_preset": "agilis:button_preset",
+        "environment": "agilis:mode"
+    }
+}

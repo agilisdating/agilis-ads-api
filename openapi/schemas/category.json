@@ -1,0 +1,17 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://www.agilis.dating/schemas/category.json",
+    "title": "Category",
+    "description": "An Offer category, or an Event category.",
+    "type": "object",
+    "properties": {
+        "category_id": {
+            "type": "integer",
+            "description": "Unique ID of the category. Example: `1`"
+        },
+        "category_name": {
+            "type": "string",
+            "description": "Name of the category. Example: `\"Retail\"`"
+        }
+    }
+}

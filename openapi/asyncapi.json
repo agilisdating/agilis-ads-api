@@ -1,0 +1,3601 @@
+{
+    "asyncapi": "3.0.0",
+    "id": "https://www.agilis.dating/asyncapi.json",
+    "info": {
+        "title": "Agilis Advertising webhooks",
+        "version": "1.0.0",
+        "description": "The messages Agilis sends to the webhook endpoints of an approved business when its Offers, Events, balance or account change.\n\nEach message is an HTTPS POST with a JSON body to an endpoint the business registered in the Ad Portal or with the REST API (`POST /webhook-endpoints`). Verify the `Agilis-Signature` header with the endpoint secret before trusting the body, answer with any 2xx within 10 seconds, and ignore an `id` you have already handled. Messages can arrive more than once and out of order. TEST endpoints receive TEST changes only, LIVE endpoints LIVE changes only.",
+        "contact": {
+            "name": "Agilis support",
+            "email": "help@agilis.dating",
+            "url": "https://www.agilis.dating/api-doc#webhooksSection"
+        },
+        "termsOfService": "https://www.agilis.dating/business/terms",
+        "externalDocs": {
+            "description": "Webhooks in the API reference",
+            "url": "https://www.agilis.dating/api-doc#webhooksSection"
+        },
+        "tags": [
+            {
+                "name": "Offers"
+            },
+            {
+                "name": "Events"
+            },
+            {
+                "name": "Balance"
+            },
+            {
+                "name": "Account"
+            }
+        ]
+    },
+    "defaultContentType": "application/json",
+    "servers": {
+        "yourEndpoint": {
+            "host": "your-server.example.com",
+            "pathname": "/agilis/webhooks",
+            "protocol": "https",
+            "title": "Your webhook endpoint",
+            "description": "The https address you registered (port 443, a public address). Agilis connects to it; it does not connect to Agilis."
+        }
+    },
+    "channels": {
+        "webhookEndpoint": {
+            "address": null,
+            "title": "Your webhook endpoint",
+            "description": "The address of each endpoint that listens for the message's type, or for every type (`*`).",
+            "servers": [
+                {
+                    "$ref": "#/servers/yourEndpoint"
+                }
+            ],
+            "messages": {
+                "offerCreated": {
+                    "$ref": "#/components/messages/offerCreated"
+                },
+                "offerPaymentSucceeded": {
+                    "$ref": "#/components/messages/offerPaymentSucceeded"
+                },
+                "offerPaymentFailed": {
+                    "$ref": "#/components/messages/offerPaymentFailed"
+                },
+                "offerStarted": {
+                    "$ref": "#/components/messages/offerStarted"
+                },
+                "offerPaused": {
+                    "$ref": "#/components/messages/offerPaused"
+                },
+                "offerResumed": {
+                    "$ref": "#/components/messages/offerResumed"
+                },
+                "offerEnded": {
+                    "$ref": "#/components/messages/offerEnded"
+                },
+                "offerDeleted": {
+                    "$ref": "#/components/messages/offerDeleted"
+                },
+                "offerDisabled": {
+                    "$ref": "#/components/messages/offerDisabled"
+                },
+                "offerEnabled": {
+                    "$ref": "#/components/messages/offerEnabled"
+                },
+                "eventPublished": {
+                    "$ref": "#/components/messages/eventPublished"
+                },
+                "eventUpdated": {
+                    "$ref": "#/components/messages/eventUpdated"
+                },
+                "eventRescheduled": {
+                    "$ref": "#/components/messages/eventRescheduled"
+                },
+                "eventCancelled": {
+                    "$ref": "#/components/messages/eventCancelled"
+                },
+                "eventDeleted": {
+                    "$ref": "#/components/messages/eventDeleted"
+                },
+                "eventEnded": {
+                    "$ref": "#/components/messages/eventEnded"
+                },
+                "balanceToppedUp": {
+                    "$ref": "#/components/messages/balanceToppedUp"
+                },
+                "balanceLow": {
+                    "$ref": "#/components/messages/balanceLow"
+                },
+                "invoiceCreated": {
+                    "$ref": "#/components/messages/invoiceCreated"
+                },
+                "termsVersionIssued": {
+                    "$ref": "#/components/messages/termsVersionIssued"
+                }
+            },
+            "bindings": {
+                "http": {
+                    "bindingVersion": "0.3.0"
+                }
+            }
+        }
+    },
+    "operations": {
+        "sendWebhookEvent": {
+            "action": "send",
+            "channel": {
+                "$ref": "#/channels/webhookEndpoint"
+            },
+            "title": "Send a webhook event",
+            "summary": "Agilis POSTs one signed message for each change, to every matching endpoint, and retries until it is accepted.",
+            "description": "LIVE messages are retried for up to 3 days, sooner at first and then every 12 hours; TEST messages three times over about 2½ hours. An endpoint with no successful delivery for 3 days is turned off; you can turn it back on in the Ad Portal or with `PATCH /webhook-endpoints/{endpoint_id}`.",
+            "bindings": {
+                "http": {
+                    "method": "POST",
+                    "bindingVersion": "0.3.0"
+                }
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/offerCreated"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/offerPaymentSucceeded"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/offerPaymentFailed"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/offerStarted"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/offerPaused"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/offerResumed"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/offerEnded"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/offerDeleted"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/offerDisabled"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/offerEnabled"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/eventPublished"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/eventUpdated"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/eventRescheduled"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/eventCancelled"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/eventDeleted"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/eventEnded"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/balanceToppedUp"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/balanceLow"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/invoiceCreated"
+                },
+                {
+                    "$ref": "#/channels/webhookEndpoint/messages/termsVersionIssued"
+                }
+            ]
+        }
+    },
+    "components": {
+        "schemas": {
+            "WebhookHeaders": {
+                "type": "object",
+                "required": [
+                    "Agilis-Signature",
+                    "Agilis-Webhook-Id"
+                ],
+                "properties": {
+                    "Agilis-Signature": {
+                        "type": "string",
+                        "description": "`t=<Unix seconds>,v1=<hex HMAC-SHA256 of \"<t>.<raw body>\" with the endpoint secret>`; one `v1` per active secret while a rolled one is still valid."
+                    },
+                    "Agilis-Webhook-Id": {
+                        "type": "string",
+                        "description": "The webhook event id, the same as `id` in the body."
+                    }
+                }
+            },
+            "Offer": {
+                "type": "object",
+                "description": "An Offer: a time-limited deal shown to Agilis members near the business, in the mode of the API key that reads it.",
+                "properties": {
+                    "offer_id": {
+                        "type": "integer",
+                        "description": "The offer's id."
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "As created."
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "As created."
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "As created."
+                    },
+                    "terms_and_conditions": {
+                        "type": "string",
+                        "description": "As created."
+                    },
+                    "advertised_name": {
+                        "description": "The business name members see; `null` when your trading name is shown."
+                    },
+                    "push_notification_title": {
+                        "type": "string",
+                        "description": "The notification members who opted in get when the offer starts. `null` on offers created before these fields existed: those offers are never sent as a notification."
+                    },
+                    "push_notification_message": {
+                        "type": "string",
+                        "description": "The notification members who opted in get when the offer starts. `null` on offers created before these fields existed: those offers are never sent as a notification."
+                    },
+                    "button_preset": {
+                        "type": "string",
+                        "description": "The button's text: `claim_offer`, `visit_website`, `install_app`, `book_now`, `get_directions` or `custom`. `claim_offer` on offers created before the button text could be chosen."
+                    },
+                    "button_text": {
+                        "description": "Your own button text when `button_preset` is `custom`; otherwise `null`."
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "As created."
+                    },
+                    "image": {
+                        "type": "string",
+                        "description": "Signed URL of the image. It expires, so do not store it."
+                    },
+                    "latitude": {
+                        "type": "number",
+                        "description": "Where the offer is shown."
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "description": "Where the offer is shown."
+                    },
+                    "radius": {
+                        "type": "integer",
+                        "description": "Where the offer is shown."
+                    },
+                    "gender": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "For example `[\"Male\",\"Female\"]`; empty when the offer targets every gender."
+                    },
+                    "interests": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Interest"
+                        },
+                        "description": "`{interest_id, interest_name}` objects; empty when no interest targeting was applied."
+                    },
+                    "start_datetime": {
+                        "type": "string",
+                        "description": "ISO 8601, UTC."
+                    },
+                    "expiry_datetime": {
+                        "type": "string",
+                        "description": "ISO 8601, UTC."
+                    },
+                    "creation_datetime": {
+                        "type": "string",
+                        "description": "ISO 8601, UTC."
+                    },
+                    "offer_status": {
+                        "type": "string",
+                        "description": "Awaiting Payment, Active, Scheduled, Paused or Ended."
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "`enabled` or `disabled`: whether an Admin has disabled the offer."
+                    }
+                }
+            },
+            "Event": {
+                "type": "object",
+                "description": "An Event listing shown in the Events tab of the Agilis apps, in the mode of the API key that reads it.",
+                "properties": {
+                    "event_id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "category": {
+                        "$ref": "#/components/schemas/Category"
+                    },
+                    "venue_name": {
+                        "type": "string"
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "country_code": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "number"
+                    },
+                    "longitude": {
+                        "type": "number"
+                    },
+                    "starts_at": {
+                        "type": "string"
+                    },
+                    "ends_at": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "advertised_name": {
+                        "description": "Can be null."
+                    },
+                    "price_min": {
+                        "type": "integer"
+                    },
+                    "price_max": {
+                        "type": "integer"
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "image": {
+                        "type": "string"
+                    },
+                    "image_large": {
+                        "type": "string"
+                    },
+                    "image_thumb": {
+                        "type": "string"
+                    },
+                    "event_status": {
+                        "type": "string"
+                    },
+                    "attendees": {
+                        "type": "string"
+                    },
+                    "owner": {
+                        "type": "object"
+                    },
+                    "environment": {
+                        "type": "string"
+                    },
+                    "reschedule_count": {
+                        "type": "integer"
+                    },
+                    "cloned_from_event_id": {
+                        "description": "Can be null."
+                    },
+                    "creation_datetime": {
+                        "type": "string"
+                    },
+                    "last_edited_at": {
+                        "description": "Can be null."
+                    }
+                }
+            },
+            "Category": {
+                "type": "object",
+                "description": "An Offer category, or an Event category.",
+                "properties": {
+                    "category_id": {
+                        "type": "integer",
+                        "description": "Unique ID of the category. Example: `1`"
+                    },
+                    "category_name": {
+                        "type": "string",
+                        "description": "Name of the category. Example: `\"Retail\"`"
+                    }
+                }
+            },
+            "Interest": {
+                "type": "object",
+                "description": "An interest that an Offer can target.",
+                "properties": {
+                    "interest_id": {
+                        "type": "integer",
+                        "description": "Unique ID of the interest. Example: `3`"
+                    },
+                    "interest_name": {
+                        "type": "string",
+                        "description": "Name of the interest. Example: `\"Cooking\"`"
+                    }
+                }
+            }
+        },
+        "messages": {
+            "offerCreated": {
+                "name": "offer.created",
+                "title": "offer.created",
+                "summary": "An Offer was created: paid from your balance at once, or awaiting a card payment.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "offer.created"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Offer",
+                                    "description": "The Offer, in the same shape as an item of GET /offers."
+                                },
+                                "payment_method": {
+                                    "type": "string",
+                                    "enum": [
+                                        "B",
+                                        "E"
+                                    ],
+                                    "description": "B: paid from your balance. E: awaiting payment by Stripe link."
+                                },
+                                "amount_charged": {
+                                    "type": "number",
+                                    "description": "What was deducted from your balance (payment_method B only)."
+                                },
+                                "amount_due": {
+                                    "type": "number",
+                                    "description": "What the payment link asks for, before any VAT (payment_method E only)."
+                                },
+                                "currency": {
+                                    "type": "string",
+                                    "description": "ISO 4217 code of the amounts, your billing currency. Example: GBP"
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "offer_created",
+                        "summary": "A offer.created message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "offer.created",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "offer_id": 45,
+                                    "title": "20% off summer sale",
+                                    "category": "Retail",
+                                    "description": "Discount valid through July",
+                                    "terms_and_conditions": "Valid online only.",
+                                    "advertised_name": null,
+                                    "push_notification_title": "20% off this summer",
+                                    "push_notification_message": "Show this at the till for 20% off everything until the end of July.",
+                                    "button_preset": "claim_offer",
+                                    "button_text": null,
+                                    "url": "https://advertiseroffer.com",
+                                    "image": "https://ads.agilis.dating/92/offers/45/offer_orig.png",
+                                    "latitude": 51.5074,
+                                    "longitude": -0.1278,
+                                    "radius": 10,
+                                    "gender": [
+                                        "Male",
+                                        "Female"
+                                    ],
+                                    "interests": [
+                                        {
+                                            "interest_id": 3,
+                                            "interest_name": "Cooking"
+                                        },
+                                        {
+                                            "interest_id": 7,
+                                            "interest_name": "Fitness"
+                                        }
+                                    ],
+                                    "start_datetime": "2027-07-10T08:00:00Z",
+                                    "expiry_datetime": "2027-07-12T20:30:00Z",
+                                    "creation_datetime": "2027-06-01T10:00:00Z",
+                                    "offer_status": "Active",
+                                    "status": "enabled"
+                                },
+                                "payment_method": "B",
+                                "amount_charged": 12.5,
+                                "currency": "GBP"
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": "6f1c2a9e-0b7d-4c55-9a51-3d2f8e7b1c04"
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "offerPaymentSucceeded": {
+                "name": "offer.payment_succeeded",
+                "title": "offer.payment_succeeded",
+                "summary": "The card payment for an Offer created with payment_method E completed.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "offer.payment_succeeded"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Offer",
+                                    "description": "The Offer, in the same shape as an item of GET /offers."
+                                },
+                                "amount_paid": {
+                                    "type": [
+                                        "number",
+                                        "null"
+                                    ],
+                                    "description": "The amount paid."
+                                },
+                                "currency": {
+                                    "type": "string",
+                                    "description": "ISO 4217 code of the amounts, your billing currency. Example: GBP"
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "offer_payment_succeeded",
+                        "summary": "A offer.payment_succeeded message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "offer.payment_succeeded",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "offer_id": 45,
+                                    "title": "20% off summer sale",
+                                    "category": "Retail",
+                                    "description": "Discount valid through July",
+                                    "terms_and_conditions": "Valid online only.",
+                                    "advertised_name": null,
+                                    "push_notification_title": "20% off this summer",
+                                    "push_notification_message": "Show this at the till for 20% off everything until the end of July.",
+                                    "button_preset": "claim_offer",
+                                    "button_text": null,
+                                    "url": "https://advertiseroffer.com",
+                                    "image": "https://ads.agilis.dating/92/offers/45/offer_orig.png",
+                                    "latitude": 51.5074,
+                                    "longitude": -0.1278,
+                                    "radius": 10,
+                                    "gender": [
+                                        "Male",
+                                        "Female"
+                                    ],
+                                    "interests": [
+                                        {
+                                            "interest_id": 3,
+                                            "interest_name": "Cooking"
+                                        },
+                                        {
+                                            "interest_id": 7,
+                                            "interest_name": "Fitness"
+                                        }
+                                    ],
+                                    "start_datetime": "2027-07-10T08:00:00Z",
+                                    "expiry_datetime": "2027-07-12T20:30:00Z",
+                                    "creation_datetime": "2027-06-01T10:00:00Z",
+                                    "offer_status": "Active",
+                                    "status": "enabled"
+                                },
+                                "amount_paid": 12.5,
+                                "currency": "GBP"
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "offerPaymentFailed": {
+                "name": "offer.payment_failed",
+                "title": "offer.payment_failed",
+                "summary": "The card payment for an Offer was declined or failed, or its payment link expired. The Offer stays Awaiting Payment.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "offer.payment_failed"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Offer",
+                                    "description": "The Offer, in the same shape as an item of GET /offers."
+                                },
+                                "reason": {
+                                    "type": "string",
+                                    "enum": [
+                                        "declined",
+                                        "failed",
+                                        "expired"
+                                    ],
+                                    "description": "declined: the card was declined (the payer can try again); failed: the payment failed; expired: the payment link expired."
+                                },
+                                "amount_due": {
+                                    "type": [
+                                        "number",
+                                        "null"
+                                    ],
+                                    "description": "The amount that was due."
+                                },
+                                "currency": {
+                                    "type": "string",
+                                    "description": "ISO 4217 code of the amounts, your billing currency. Example: GBP"
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "offer_payment_failed",
+                        "summary": "A offer.payment_failed message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "offer.payment_failed",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "offer_id": 45,
+                                    "title": "20% off summer sale",
+                                    "category": "Retail",
+                                    "description": "Discount valid through July",
+                                    "terms_and_conditions": "Valid online only.",
+                                    "advertised_name": null,
+                                    "push_notification_title": "20% off this summer",
+                                    "push_notification_message": "Show this at the till for 20% off everything until the end of July.",
+                                    "button_preset": "claim_offer",
+                                    "button_text": null,
+                                    "url": "https://advertiseroffer.com",
+                                    "image": "https://ads.agilis.dating/92/offers/45/offer_orig.png",
+                                    "latitude": 51.5074,
+                                    "longitude": -0.1278,
+                                    "radius": 10,
+                                    "gender": [
+                                        "Male",
+                                        "Female"
+                                    ],
+                                    "interests": [
+                                        {
+                                            "interest_id": 3,
+                                            "interest_name": "Cooking"
+                                        },
+                                        {
+                                            "interest_id": 7,
+                                            "interest_name": "Fitness"
+                                        }
+                                    ],
+                                    "start_datetime": "2027-07-10T08:00:00Z",
+                                    "expiry_datetime": "2027-07-12T20:30:00Z",
+                                    "creation_datetime": "2027-06-01T10:00:00Z",
+                                    "offer_status": "Active",
+                                    "status": "enabled"
+                                },
+                                "reason": "declined",
+                                "amount_due": 12.5,
+                                "currency": "GBP"
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "offerStarted": {
+                "name": "offer.started",
+                "title": "offer.started",
+                "summary": "An Offer became visible to members: at once, or at its scheduled start.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "offer.started"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Offer",
+                                    "description": "The Offer, in the same shape as an item of GET /offers."
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "offer_started",
+                        "summary": "A offer.started message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "offer.started",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "offer_id": 45,
+                                    "title": "20% off summer sale",
+                                    "category": "Retail",
+                                    "description": "Discount valid through July",
+                                    "terms_and_conditions": "Valid online only.",
+                                    "advertised_name": null,
+                                    "push_notification_title": "20% off this summer",
+                                    "push_notification_message": "Show this at the till for 20% off everything until the end of July.",
+                                    "button_preset": "claim_offer",
+                                    "button_text": null,
+                                    "url": "https://advertiseroffer.com",
+                                    "image": "https://ads.agilis.dating/92/offers/45/offer_orig.png",
+                                    "latitude": 51.5074,
+                                    "longitude": -0.1278,
+                                    "radius": 10,
+                                    "gender": [
+                                        "Male",
+                                        "Female"
+                                    ],
+                                    "interests": [
+                                        {
+                                            "interest_id": 3,
+                                            "interest_name": "Cooking"
+                                        },
+                                        {
+                                            "interest_id": 7,
+                                            "interest_name": "Fitness"
+                                        }
+                                    ],
+                                    "start_datetime": "2027-07-10T08:00:00Z",
+                                    "expiry_datetime": "2027-07-12T20:30:00Z",
+                                    "creation_datetime": "2027-06-01T10:00:00Z",
+                                    "offer_status": "Active",
+                                    "status": "enabled"
+                                }
+                            },
+                            "request": {
+                                "source": "system",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "offerPaused": {
+                "name": "offer.paused",
+                "title": "offer.paused",
+                "summary": "An Offer was paused, by your organisation or by Agilis.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "offer.paused"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Offer",
+                                    "description": "The Offer, in the same shape as an item of GET /offers."
+                                },
+                                "paused_by": {
+                                    "type": "string",
+                                    "enum": [
+                                        "business",
+                                        "agilis"
+                                    ],
+                                    "description": "Who paused it: your organisation, or Agilis."
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "offer_paused",
+                        "summary": "A offer.paused message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "offer.paused",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "offer_id": 45,
+                                    "title": "20% off summer sale",
+                                    "category": "Retail",
+                                    "description": "Discount valid through July",
+                                    "terms_and_conditions": "Valid online only.",
+                                    "advertised_name": null,
+                                    "push_notification_title": "20% off this summer",
+                                    "push_notification_message": "Show this at the till for 20% off everything until the end of July.",
+                                    "button_preset": "claim_offer",
+                                    "button_text": null,
+                                    "url": "https://advertiseroffer.com",
+                                    "image": "https://ads.agilis.dating/92/offers/45/offer_orig.png",
+                                    "latitude": 51.5074,
+                                    "longitude": -0.1278,
+                                    "radius": 10,
+                                    "gender": [
+                                        "Male",
+                                        "Female"
+                                    ],
+                                    "interests": [
+                                        {
+                                            "interest_id": 3,
+                                            "interest_name": "Cooking"
+                                        },
+                                        {
+                                            "interest_id": 7,
+                                            "interest_name": "Fitness"
+                                        }
+                                    ],
+                                    "start_datetime": "2027-07-10T08:00:00Z",
+                                    "expiry_datetime": "2027-07-12T20:30:00Z",
+                                    "creation_datetime": "2027-06-01T10:00:00Z",
+                                    "offer_status": "Active",
+                                    "status": "enabled"
+                                },
+                                "paused_by": "business"
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "offerResumed": {
+                "name": "offer.resumed",
+                "title": "offer.resumed",
+                "summary": "A paused Offer was resumed.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "offer.resumed"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Offer",
+                                    "description": "The Offer, in the same shape as an item of GET /offers."
+                                },
+                                "resumed_by": {
+                                    "type": "string",
+                                    "enum": [
+                                        "business",
+                                        "agilis"
+                                    ],
+                                    "description": "Who resumed it: your organisation, or Agilis."
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "offer_resumed",
+                        "summary": "A offer.resumed message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "offer.resumed",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "offer_id": 45,
+                                    "title": "20% off summer sale",
+                                    "category": "Retail",
+                                    "description": "Discount valid through July",
+                                    "terms_and_conditions": "Valid online only.",
+                                    "advertised_name": null,
+                                    "push_notification_title": "20% off this summer",
+                                    "push_notification_message": "Show this at the till for 20% off everything until the end of July.",
+                                    "button_preset": "claim_offer",
+                                    "button_text": null,
+                                    "url": "https://advertiseroffer.com",
+                                    "image": "https://ads.agilis.dating/92/offers/45/offer_orig.png",
+                                    "latitude": 51.5074,
+                                    "longitude": -0.1278,
+                                    "radius": 10,
+                                    "gender": [
+                                        "Male",
+                                        "Female"
+                                    ],
+                                    "interests": [
+                                        {
+                                            "interest_id": 3,
+                                            "interest_name": "Cooking"
+                                        },
+                                        {
+                                            "interest_id": 7,
+                                            "interest_name": "Fitness"
+                                        }
+                                    ],
+                                    "start_datetime": "2027-07-10T08:00:00Z",
+                                    "expiry_datetime": "2027-07-12T20:30:00Z",
+                                    "creation_datetime": "2027-06-01T10:00:00Z",
+                                    "offer_status": "Active",
+                                    "status": "enabled"
+                                },
+                                "resumed_by": "business"
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "offerEnded": {
+                "name": "offer.ended",
+                "title": "offer.ended",
+                "summary": "An Offer's time is up. Any unused time is credited to your balance.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "offer.ended"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Offer",
+                                    "description": "The Offer, in the same shape as an item of GET /offers."
+                                },
+                                "unused_time_credited": {
+                                    "type": "number",
+                                    "description": "Credited to your balance for time the Offer did not run (0 if none)."
+                                },
+                                "currency": {
+                                    "type": "string",
+                                    "description": "ISO 4217 code of the amounts, your billing currency. Example: GBP"
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "offer_ended",
+                        "summary": "A offer.ended message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "offer.ended",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "offer_id": 45,
+                                    "title": "20% off summer sale",
+                                    "category": "Retail",
+                                    "description": "Discount valid through July",
+                                    "terms_and_conditions": "Valid online only.",
+                                    "advertised_name": null,
+                                    "push_notification_title": "20% off this summer",
+                                    "push_notification_message": "Show this at the till for 20% off everything until the end of July.",
+                                    "button_preset": "claim_offer",
+                                    "button_text": null,
+                                    "url": "https://advertiseroffer.com",
+                                    "image": "https://ads.agilis.dating/92/offers/45/offer_orig.png",
+                                    "latitude": 51.5074,
+                                    "longitude": -0.1278,
+                                    "radius": 10,
+                                    "gender": [
+                                        "Male",
+                                        "Female"
+                                    ],
+                                    "interests": [
+                                        {
+                                            "interest_id": 3,
+                                            "interest_name": "Cooking"
+                                        },
+                                        {
+                                            "interest_id": 7,
+                                            "interest_name": "Fitness"
+                                        }
+                                    ],
+                                    "start_datetime": "2027-07-10T08:00:00Z",
+                                    "expiry_datetime": "2027-07-12T20:30:00Z",
+                                    "creation_datetime": "2027-06-01T10:00:00Z",
+                                    "offer_status": "Active",
+                                    "status": "enabled"
+                                },
+                                "unused_time_credited": 0,
+                                "currency": "GBP"
+                            },
+                            "request": {
+                                "source": "system",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "offerDeleted": {
+                "name": "offer.deleted",
+                "title": "offer.deleted",
+                "summary": "An Offer was deleted. Any unused time is credited to your balance.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "offer.deleted"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Offer",
+                                    "description": "The Offer, in the same shape as an item of GET /offers."
+                                },
+                                "unused_time_credited": {
+                                    "type": "number",
+                                    "description": "Credited to your balance for time the Offer did not run (0 if none)."
+                                },
+                                "currency": {
+                                    "type": "string",
+                                    "description": "ISO 4217 code of the amounts, your billing currency. Example: GBP"
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "offer_deleted",
+                        "summary": "A offer.deleted message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "offer.deleted",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "offer_id": 45,
+                                    "title": "20% off summer sale",
+                                    "category": "Retail",
+                                    "description": "Discount valid through July",
+                                    "terms_and_conditions": "Valid online only.",
+                                    "advertised_name": null,
+                                    "push_notification_title": "20% off this summer",
+                                    "push_notification_message": "Show this at the till for 20% off everything until the end of July.",
+                                    "button_preset": "claim_offer",
+                                    "button_text": null,
+                                    "url": "https://advertiseroffer.com",
+                                    "image": "https://ads.agilis.dating/92/offers/45/offer_orig.png",
+                                    "latitude": 51.5074,
+                                    "longitude": -0.1278,
+                                    "radius": 10,
+                                    "gender": [
+                                        "Male",
+                                        "Female"
+                                    ],
+                                    "interests": [
+                                        {
+                                            "interest_id": 3,
+                                            "interest_name": "Cooking"
+                                        },
+                                        {
+                                            "interest_id": 7,
+                                            "interest_name": "Fitness"
+                                        }
+                                    ],
+                                    "start_datetime": "2027-07-10T08:00:00Z",
+                                    "expiry_datetime": "2027-07-12T20:30:00Z",
+                                    "creation_datetime": "2027-06-01T10:00:00Z",
+                                    "offer_status": "Active",
+                                    "status": "enabled"
+                                },
+                                "unused_time_credited": 1.25,
+                                "currency": "GBP"
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "offerDisabled": {
+                "name": "offer.disabled",
+                "title": "offer.disabled",
+                "summary": "Agilis took an Offer off members' feeds. Your Org Admins are told why by email.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "offer.disabled"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Offer",
+                                    "description": "The Offer, in the same shape as an item of GET /offers."
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "offer_disabled",
+                        "summary": "A offer.disabled message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "offer.disabled",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "offer_id": 45,
+                                    "title": "20% off summer sale",
+                                    "category": "Retail",
+                                    "description": "Discount valid through July",
+                                    "terms_and_conditions": "Valid online only.",
+                                    "advertised_name": null,
+                                    "push_notification_title": "20% off this summer",
+                                    "push_notification_message": "Show this at the till for 20% off everything until the end of July.",
+                                    "button_preset": "claim_offer",
+                                    "button_text": null,
+                                    "url": "https://advertiseroffer.com",
+                                    "image": "https://ads.agilis.dating/92/offers/45/offer_orig.png",
+                                    "latitude": 51.5074,
+                                    "longitude": -0.1278,
+                                    "radius": 10,
+                                    "gender": [
+                                        "Male",
+                                        "Female"
+                                    ],
+                                    "interests": [
+                                        {
+                                            "interest_id": 3,
+                                            "interest_name": "Cooking"
+                                        },
+                                        {
+                                            "interest_id": 7,
+                                            "interest_name": "Fitness"
+                                        }
+                                    ],
+                                    "start_datetime": "2027-07-10T08:00:00Z",
+                                    "expiry_datetime": "2027-07-12T20:30:00Z",
+                                    "creation_datetime": "2027-06-01T10:00:00Z",
+                                    "offer_status": "Active",
+                                    "status": "enabled"
+                                }
+                            },
+                            "request": {
+                                "source": "agilis",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "offerEnabled": {
+                "name": "offer.enabled",
+                "title": "offer.enabled",
+                "summary": "Agilis put a disabled Offer back on members' feeds.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "offer.enabled"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Offer",
+                                    "description": "The Offer, in the same shape as an item of GET /offers."
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "offer_enabled",
+                        "summary": "A offer.enabled message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "offer.enabled",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "offer_id": 45,
+                                    "title": "20% off summer sale",
+                                    "category": "Retail",
+                                    "description": "Discount valid through July",
+                                    "terms_and_conditions": "Valid online only.",
+                                    "advertised_name": null,
+                                    "push_notification_title": "20% off this summer",
+                                    "push_notification_message": "Show this at the till for 20% off everything until the end of July.",
+                                    "button_preset": "claim_offer",
+                                    "button_text": null,
+                                    "url": "https://advertiseroffer.com",
+                                    "image": "https://ads.agilis.dating/92/offers/45/offer_orig.png",
+                                    "latitude": 51.5074,
+                                    "longitude": -0.1278,
+                                    "radius": 10,
+                                    "gender": [
+                                        "Male",
+                                        "Female"
+                                    ],
+                                    "interests": [
+                                        {
+                                            "interest_id": 3,
+                                            "interest_name": "Cooking"
+                                        },
+                                        {
+                                            "interest_id": 7,
+                                            "interest_name": "Fitness"
+                                        }
+                                    ],
+                                    "start_datetime": "2027-07-10T08:00:00Z",
+                                    "expiry_datetime": "2027-07-12T20:30:00Z",
+                                    "creation_datetime": "2027-06-01T10:00:00Z",
+                                    "offer_status": "Active",
+                                    "status": "enabled"
+                                }
+                            },
+                            "request": {
+                                "source": "agilis",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "eventPublished": {
+                "name": "event.published",
+                "title": "event.published",
+                "summary": "An Event was published.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "event.published"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Event",
+                                    "description": "The Event, in the same shape as an item of GET /events."
+                                },
+                                "amount_charged": {
+                                    "type": "number",
+                                    "description": "The listing fee taken from your balance (0 for a TEST event)."
+                                },
+                                "currency": {
+                                    "type": "string",
+                                    "description": "ISO 4217 code of the amounts, your billing currency. Example: GBP"
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "event_published",
+                        "summary": "A event.published message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "event.published",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "event_id": 3104,
+                                    "title": "Beginners Cuban Salsa: Friday Social",
+                                    "description": "Drop-in class for absolute beginners, followed by a social until late. No partner needed.",
+                                    "category": {
+                                        "category_id": 9,
+                                        "category_name": "Classes & workshops"
+                                    },
+                                    "venue_name": "Bar Salsa",
+                                    "address": "96 Charing Cross Road",
+                                    "city": "London",
+                                    "country_code": "GB",
+                                    "latitude": 51.5133,
+                                    "longitude": -0.13,
+                                    "starts_at": "2027-10-16T18:30:00Z",
+                                    "ends_at": "2027-10-16T23:00:00Z",
+                                    "url": "https://www.barsalsa.co.uk/classes/friday",
+                                    "advertised_name": null,
+                                    "price_min": 12,
+                                    "price_max": 12,
+                                    "currency": "GBP",
+                                    "image": "https://cdn.agilis.dating/92/events/5f0c…/event_orig.jpg",
+                                    "image_large": "https://cdn.agilis.dating/92/events/5f0c…/event_large.jpg",
+                                    "image_thumb": "https://cdn.agilis.dating/92/events/5f0c…/event_thumb.jpg",
+                                    "event_status": "Scheduled",
+                                    "attendees": "10-25",
+                                    "owner": {
+                                        "user_id": 41,
+                                        "name": "Tom Reid"
+                                    },
+                                    "environment": "LIVE",
+                                    "reschedule_count": 0,
+                                    "cloned_from_event_id": null,
+                                    "creation_datetime": "2027-09-20T10:00:00Z",
+                                    "last_edited_at": null
+                                },
+                                "amount_charged": 10,
+                                "currency": "GBP"
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": "6f1c2a9e-0b7d-4c55-9a51-3d2f8e7b1c04"
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "eventUpdated": {
+                "name": "event.updated",
+                "title": "event.updated",
+                "summary": "An Event's details, image or crop changed.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "event.updated"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Event",
+                                    "description": "The Event, in the same shape as an item of GET /events."
+                                },
+                                "changed_fields": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "The fields that changed."
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "event_updated",
+                        "summary": "A event.updated message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "event.updated",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "event_id": 3104,
+                                    "title": "Beginners Cuban Salsa: Friday Social",
+                                    "description": "Drop-in class for absolute beginners, followed by a social until late. No partner needed.",
+                                    "category": {
+                                        "category_id": 9,
+                                        "category_name": "Classes & workshops"
+                                    },
+                                    "venue_name": "Bar Salsa",
+                                    "address": "96 Charing Cross Road",
+                                    "city": "London",
+                                    "country_code": "GB",
+                                    "latitude": 51.5133,
+                                    "longitude": -0.13,
+                                    "starts_at": "2027-10-16T18:30:00Z",
+                                    "ends_at": "2027-10-16T23:00:00Z",
+                                    "url": "https://www.barsalsa.co.uk/classes/friday",
+                                    "advertised_name": null,
+                                    "price_min": 12,
+                                    "price_max": 12,
+                                    "currency": "GBP",
+                                    "image": "https://cdn.agilis.dating/92/events/5f0c…/event_orig.jpg",
+                                    "image_large": "https://cdn.agilis.dating/92/events/5f0c…/event_large.jpg",
+                                    "image_thumb": "https://cdn.agilis.dating/92/events/5f0c…/event_thumb.jpg",
+                                    "event_status": "Scheduled",
+                                    "attendees": "10-25",
+                                    "owner": {
+                                        "user_id": 41,
+                                        "name": "Tom Reid"
+                                    },
+                                    "environment": "LIVE",
+                                    "reschedule_count": 0,
+                                    "cloned_from_event_id": null,
+                                    "creation_datetime": "2027-09-20T10:00:00Z",
+                                    "last_edited_at": null
+                                },
+                                "changed_fields": [
+                                    "title",
+                                    "image"
+                                ]
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "eventRescheduled": {
+                "name": "event.rescheduled",
+                "title": "event.rescheduled",
+                "summary": "An Event moved to new dates.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "event.rescheduled"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Event",
+                                    "description": "The Event, in the same shape as an item of GET /events."
+                                },
+                                "reschedule_count": {
+                                    "type": "integer",
+                                    "description": "How many times it has been rescheduled."
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "event_rescheduled",
+                        "summary": "A event.rescheduled message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "event.rescheduled",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "event_id": 3104,
+                                    "title": "Beginners Cuban Salsa: Friday Social",
+                                    "description": "Drop-in class for absolute beginners, followed by a social until late. No partner needed.",
+                                    "category": {
+                                        "category_id": 9,
+                                        "category_name": "Classes & workshops"
+                                    },
+                                    "venue_name": "Bar Salsa",
+                                    "address": "96 Charing Cross Road",
+                                    "city": "London",
+                                    "country_code": "GB",
+                                    "latitude": 51.5133,
+                                    "longitude": -0.13,
+                                    "starts_at": "2027-10-16T18:30:00Z",
+                                    "ends_at": "2027-10-16T23:00:00Z",
+                                    "url": "https://www.barsalsa.co.uk/classes/friday",
+                                    "advertised_name": null,
+                                    "price_min": 12,
+                                    "price_max": 12,
+                                    "currency": "GBP",
+                                    "image": "https://cdn.agilis.dating/92/events/5f0c…/event_orig.jpg",
+                                    "image_large": "https://cdn.agilis.dating/92/events/5f0c…/event_large.jpg",
+                                    "image_thumb": "https://cdn.agilis.dating/92/events/5f0c…/event_thumb.jpg",
+                                    "event_status": "Scheduled",
+                                    "attendees": "10-25",
+                                    "owner": {
+                                        "user_id": 41,
+                                        "name": "Tom Reid"
+                                    },
+                                    "environment": "LIVE",
+                                    "reschedule_count": 0,
+                                    "cloned_from_event_id": null,
+                                    "creation_datetime": "2027-09-20T10:00:00Z",
+                                    "last_edited_at": null
+                                },
+                                "reschedule_count": 1
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "eventCancelled": {
+                "name": "event.cancelled",
+                "title": "event.cancelled",
+                "summary": "An Event was cancelled.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "event.cancelled"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Event",
+                                    "description": "The Event, in the same shape as an item of GET /events."
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "event_cancelled",
+                        "summary": "A event.cancelled message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "event.cancelled",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "event_id": 3104,
+                                    "title": "Beginners Cuban Salsa: Friday Social",
+                                    "description": "Drop-in class for absolute beginners, followed by a social until late. No partner needed.",
+                                    "category": {
+                                        "category_id": 9,
+                                        "category_name": "Classes & workshops"
+                                    },
+                                    "venue_name": "Bar Salsa",
+                                    "address": "96 Charing Cross Road",
+                                    "city": "London",
+                                    "country_code": "GB",
+                                    "latitude": 51.5133,
+                                    "longitude": -0.13,
+                                    "starts_at": "2027-10-16T18:30:00Z",
+                                    "ends_at": "2027-10-16T23:00:00Z",
+                                    "url": "https://www.barsalsa.co.uk/classes/friday",
+                                    "advertised_name": null,
+                                    "price_min": 12,
+                                    "price_max": 12,
+                                    "currency": "GBP",
+                                    "image": "https://cdn.agilis.dating/92/events/5f0c…/event_orig.jpg",
+                                    "image_large": "https://cdn.agilis.dating/92/events/5f0c…/event_large.jpg",
+                                    "image_thumb": "https://cdn.agilis.dating/92/events/5f0c…/event_thumb.jpg",
+                                    "event_status": "Scheduled",
+                                    "attendees": "10-25",
+                                    "owner": {
+                                        "user_id": 41,
+                                        "name": "Tom Reid"
+                                    },
+                                    "environment": "LIVE",
+                                    "reschedule_count": 0,
+                                    "cloned_from_event_id": null,
+                                    "creation_datetime": "2027-09-20T10:00:00Z",
+                                    "last_edited_at": null
+                                }
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "eventDeleted": {
+                "name": "event.deleted",
+                "title": "event.deleted",
+                "summary": "An Event was deleted.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "event.deleted"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Event",
+                                    "description": "The Event, in the same shape as an item of GET /events."
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "event_deleted",
+                        "summary": "A event.deleted message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "event.deleted",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "event_id": 3104,
+                                    "title": "Beginners Cuban Salsa: Friday Social",
+                                    "description": "Drop-in class for absolute beginners, followed by a social until late. No partner needed.",
+                                    "category": {
+                                        "category_id": 9,
+                                        "category_name": "Classes & workshops"
+                                    },
+                                    "venue_name": "Bar Salsa",
+                                    "address": "96 Charing Cross Road",
+                                    "city": "London",
+                                    "country_code": "GB",
+                                    "latitude": 51.5133,
+                                    "longitude": -0.13,
+                                    "starts_at": "2027-10-16T18:30:00Z",
+                                    "ends_at": "2027-10-16T23:00:00Z",
+                                    "url": "https://www.barsalsa.co.uk/classes/friday",
+                                    "advertised_name": null,
+                                    "price_min": 12,
+                                    "price_max": 12,
+                                    "currency": "GBP",
+                                    "image": "https://cdn.agilis.dating/92/events/5f0c…/event_orig.jpg",
+                                    "image_large": "https://cdn.agilis.dating/92/events/5f0c…/event_large.jpg",
+                                    "image_thumb": "https://cdn.agilis.dating/92/events/5f0c…/event_thumb.jpg",
+                                    "event_status": "Scheduled",
+                                    "attendees": "10-25",
+                                    "owner": {
+                                        "user_id": 41,
+                                        "name": "Tom Reid"
+                                    },
+                                    "environment": "LIVE",
+                                    "reschedule_count": 0,
+                                    "cloned_from_event_id": null,
+                                    "creation_datetime": "2027-09-20T10:00:00Z",
+                                    "last_edited_at": null
+                                }
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "eventEnded": {
+                "name": "event.ended",
+                "title": "event.ended",
+                "summary": "An Event's end time passed.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "event.ended"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "$ref": "#/components/schemas/Event",
+                                    "description": "The Event, in the same shape as an item of GET /events."
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "event_ended",
+                        "summary": "A event.ended message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "event.ended",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "event_id": 3104,
+                                    "title": "Beginners Cuban Salsa: Friday Social",
+                                    "description": "Drop-in class for absolute beginners, followed by a social until late. No partner needed.",
+                                    "category": {
+                                        "category_id": 9,
+                                        "category_name": "Classes & workshops"
+                                    },
+                                    "venue_name": "Bar Salsa",
+                                    "address": "96 Charing Cross Road",
+                                    "city": "London",
+                                    "country_code": "GB",
+                                    "latitude": 51.5133,
+                                    "longitude": -0.13,
+                                    "starts_at": "2027-10-16T18:30:00Z",
+                                    "ends_at": "2027-10-16T23:00:00Z",
+                                    "url": "https://www.barsalsa.co.uk/classes/friday",
+                                    "advertised_name": null,
+                                    "price_min": 12,
+                                    "price_max": 12,
+                                    "currency": "GBP",
+                                    "image": "https://cdn.agilis.dating/92/events/5f0c…/event_orig.jpg",
+                                    "image_large": "https://cdn.agilis.dating/92/events/5f0c…/event_large.jpg",
+                                    "image_thumb": "https://cdn.agilis.dating/92/events/5f0c…/event_thumb.jpg",
+                                    "event_status": "Scheduled",
+                                    "attendees": "10-25",
+                                    "owner": {
+                                        "user_id": 41,
+                                        "name": "Tom Reid"
+                                    },
+                                    "environment": "LIVE",
+                                    "reschedule_count": 0,
+                                    "cloned_from_event_id": null,
+                                    "creation_datetime": "2027-09-20T10:00:00Z",
+                                    "last_edited_at": null
+                                }
+                            },
+                            "request": {
+                                "source": "system",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "balanceToppedUp": {
+                "name": "balance.topped_up",
+                "title": "balance.topped_up",
+                "summary": "A top-up was credited to your balance.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "balance.topped_up"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "type": "null"
+                                },
+                                "amount_added": {
+                                    "type": "number",
+                                    "description": "Added to your balance, promotional credit included."
+                                },
+                                "of_which_promo_credit": {
+                                    "type": "number",
+                                    "description": "The part of amount_added that is promotional credit."
+                                },
+                                "currency": {
+                                    "type": "string",
+                                    "description": "ISO 4217 code of the amounts, your billing currency. Example: GBP"
+                                },
+                                "balance": {
+                                    "type": "number",
+                                    "description": "Your Organisation balance (everyone's balances added together) after the top-up."
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "balance_topped_up",
+                        "summary": "A balance.topped_up message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "balance.topped_up",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": null,
+                                "amount_added": 110,
+                                "of_which_promo_credit": 10,
+                                "currency": "GBP",
+                                "balance": 152.1
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "balanceLow": {
+                "name": "balance.low",
+                "title": "balance.low",
+                "summary": "Your Organisation balance (everyone's balances added together) fell below the low balance alert amount an Org Admin set in Settings. Sent once until the balance is back at or above that amount.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "balance.low"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "type": "null"
+                                },
+                                "balance": {
+                                    "type": "number",
+                                    "description": "Your Organisation balance (everyone's balances added together) now."
+                                },
+                                "alert_amount": {
+                                    "type": "number",
+                                    "description": "The alert amount set in Settings."
+                                },
+                                "currency": {
+                                    "type": "string",
+                                    "description": "ISO 4217 code of the amounts, your billing currency. Example: GBP"
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "balance_low",
+                        "summary": "A balance.low message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "balance.low",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": null,
+                                "balance": 42.1,
+                                "alert_amount": 50,
+                                "currency": "GBP"
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "invoiceCreated": {
+                "name": "invoice.created",
+                "title": "invoice.created",
+                "summary": "An invoice was issued: for an Offer, an Event or a top-up.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "invoice.created"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "type": "object",
+                                    "description": "The invoice. Download it from the Ad Portal's Invoices page.",
+                                    "properties": {
+                                        "invoice_number": {
+                                            "type": "string"
+                                        },
+                                        "invoice_date": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
+                                            "format": "date-time"
+                                        },
+                                        "for": {
+                                            "type": "string",
+                                            "enum": [
+                                                "offer",
+                                                "event",
+                                                "top_up"
+                                            ]
+                                        },
+                                        "offer_id": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ]
+                                        },
+                                        "event_id": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ]
+                                        },
+                                        "amount": {
+                                            "type": [
+                                                "number",
+                                                "null"
+                                            ],
+                                            "description": "Excluding VAT."
+                                        },
+                                        "currency": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
+                                        },
+                                        "ad_portal_url": {
+                                            "type": "string",
+                                            "format": "uri"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "invoice_created",
+                        "summary": "A invoice.created message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "invoice.created",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": {
+                                    "invoice_number": "INV-2027-1047",
+                                    "invoice_date": "2027-07-10T08:00:12Z",
+                                    "for": "offer",
+                                    "offer_id": 45,
+                                    "event_id": null,
+                                    "amount": 12.5,
+                                    "currency": "GBP",
+                                    "ad_portal_url": "https://adportal.agilis.dating/invoice"
+                                }
+                            },
+                            "request": {
+                                "source": "api",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            },
+            "termsVersionIssued": {
+                "name": "terms.version_issued",
+                "title": "terms.version_issued",
+                "summary": "Agilis issued a new version of the Advertising Terms. An Org Admin must accept it before your organisation can create Offers or publish Events again, through the API too.",
+                "contentType": "application/json",
+                "headers": {
+                    "$ref": "#/components/schemas/WebhookHeaders"
+                },
+                "payload": {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "object",
+                        "type",
+                        "created",
+                        "livemode",
+                        "version",
+                        "data",
+                        "request"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Unique id of this webhook event (whevt_…). The same on every retry and resend: use it to ignore duplicates."
+                        },
+                        "object": {
+                            "type": "string",
+                            "const": "webhook_event"
+                        },
+                        "type": {
+                            "type": "string",
+                            "const": "terms.version_issued"
+                        },
+                        "created": {
+                            "type": "integer",
+                            "description": "When the change happened, in Unix seconds. Events can arrive out of order: use this to order them."
+                        },
+                        "livemode": {
+                            "type": "boolean",
+                            "description": "true for a LIVE endpoint, false for TEST."
+                        },
+                        "version": {
+                            "type": "integer",
+                            "const": 1,
+                            "description": "Payload version."
+                        },
+                        "test": {
+                            "type": "boolean",
+                            "description": "Present and true only on a message sent with Send test event."
+                        },
+                        "data": {
+                            "type": "object",
+                            "required": [
+                                "object"
+                            ],
+                            "properties": {
+                                "object": {
+                                    "type": "null"
+                                },
+                                "version": {
+                                    "type": "string",
+                                    "description": "The version label."
+                                },
+                                "issued_at": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "When it was issued (UTC)."
+                                },
+                                "url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "description": "Where to read them."
+                                },
+                                "accept_url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "description": "Where an Org Admin accepts them."
+                                },
+                                "acceptance_needed_to_create": {
+                                    "type": "boolean",
+                                    "description": "Always true: creating Offers and Events waits for acceptance."
+                                }
+                            }
+                        },
+                        "request": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string",
+                                    "enum": [
+                                        "api",
+                                        "mcp",
+                                        "ad_portal",
+                                        "agilis",
+                                        "system"
+                                    ],
+                                    "description": "What caused the change: your API key, the MCP server, the Ad Portal, Agilis, or the system (a scheduled start or end)."
+                                },
+                                "idempotency_key": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "The Idempotency-Key of the request that caused it, if any."
+                                }
+                            }
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "name": "terms_version_issued",
+                        "summary": "A terms.version_issued message.",
+                        "headers": {
+                            "Agilis-Signature": "t=1795075200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd",
+                            "Agilis-Webhook-Id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R"
+                        },
+                        "payload": {
+                            "id": "whevt_01JD0S6Q4M8K1Z0X7C2V9B3N5R",
+                            "object": "webhook_event",
+                            "type": "terms.version_issued",
+                            "created": 1795075200,
+                            "livemode": true,
+                            "version": 1,
+                            "data": {
+                                "object": null,
+                                "version": "2027-01",
+                                "issued_at": "2027-01-04T09:00:00Z",
+                                "url": "https://www.agilis.dating/business/terms",
+                                "accept_url": "https://adportal.agilis.dating/terms",
+                                "acceptance_needed_to_create": true
+                            },
+                            "request": {
+                                "source": "agilis",
+                                "idempotency_key": null
+                            }
+                        }
+                    }
+                ],
+                "bindings": {
+                    "http": {
+                        "bindingVersion": "0.3.0"
+                    }
+                }
+            }
+        }
+    }
+}

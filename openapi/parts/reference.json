@@ -1,0 +1,584 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Agilis Advertising REST API: Reference",
+        "version": "1.0.0",
+        "summary": "The look-ups Offers and Events use: categories, interests, Event categories, ticket currencies and Event settings.",
+        "description": "Return codes are in the JSON body (`return_code`). They are scoped to the endpoint: the same code can mean different things on different endpoints, so read each operation's `x-return-codes`.\n\nRate limits: 60 requests a minute per API key, uploads included. Responses carry `X-RateLimit-Limit` and `X-RateLimit-Remaining`; over the limit the API returns 429 with `Retry-After`. Repeated requests with an invalid key are refused for a while with 429 and `Retry-After`. Every bad key returns the same 401 Unauthorised. TEST Offers and Events are deleted 30 days after they end.\n\nHuman-readable reference: https://www.agilis.dating/api-doc · Markdown: https://www.agilis.dating/api-doc.md",
+        "contact": {
+            "name": "Agilis support",
+            "email": "help@agilis.dating",
+            "url": "https://www.agilis.dating/api-doc"
+        },
+        "termsOfService": "https://www.agilis.dating/business/terms"
+    },
+    "servers": [
+        {
+            "url": "https://ads.agilis.dating",
+            "description": "Production. TEST or LIVE is chosen by the API key (pk_test_ / pk_live_) and the environment parameter."
+        }
+    ],
+    "security": [
+        {
+            "apiKey": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Offers"
+        },
+        {
+            "name": "Events"
+        }
+    ],
+    "paths": {
+        "/categories": {
+            "get": {
+                "operationId": "listCategories",
+                "summary": "Category List",
+                "description": "Returns all active categories available to the organisation that owns the API key. It is typically called before creating an offer, because offer creation requires a valid category ID returned by this endpoint.",
+                "tags": [
+                    "Offers"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#categoryListSection"
+                },
+                "responses": {
+                    "200": {
+                        "description": "Categories retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "categories": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Category"
+                                            }
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "categories": [
+                                        {
+                                            "category_id": 1,
+                                            "category_name": "Retail"
+                                        },
+                                        {
+                                            "category_id": 2,
+                                            "category_name": "Food & Beverage"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid API key or disabled account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error."
+                    }
+                }
+            }
+        },
+        "/interests": {
+            "get": {
+                "operationId": "listInterests",
+                "summary": "Interest List",
+                "description": "Returns the interests available for offer targeting. Call it before creating an offer if you intend to use the optional `interests` array, which restricts the offer to users who have selected at least one of the interests supplied.",
+                "tags": [
+                    "Offers"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#interestListSection"
+                },
+                "responses": {
+                    "200": {
+                        "description": "Interests retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "interests": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Interest"
+                                            }
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "interests": [
+                                        {
+                                            "interest_id": 3,
+                                            "interest_name": "Cooking"
+                                        },
+                                        {
+                                            "interest_id": 7,
+                                            "interest_name": "Fitness"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid API key or disabled account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error."
+                    }
+                }
+            }
+        },
+        "/event-categories": {
+            "get": {
+                "operationId": "listEventCategories",
+                "summary": "Event Categories",
+                "description": "Returns the Agilis event categories, **for display**: for example to label an event in your own system with the category the API chose for it. It is not an input. The category of an event is determined from its title, description and venue name (see [Preview Event](https://www.agilis.dating/api-doc#previewEventSectionid)). Names are returned in the language of your `Accept-Language` header, falling back to English.",
+                "tags": [
+                    "Events"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#eventCategoriesSectionid"
+                },
+                "responses": {
+                    "200": {
+                        "description": "Categories returned successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "categories": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Category"
+                                            }
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "categories": [
+                                        {
+                                            "category_id": 1,
+                                            "code": "live_music",
+                                            "category_name": "Live music"
+                                        },
+                                        {
+                                            "category_id": 2,
+                                            "code": "nightlife",
+                                            "category_name": "Clubs & nightlife"
+                                        },
+                                        {
+                                            "category_id": 3,
+                                            "code": "festivals",
+                                            "category_name": "Festivals"
+                                        },
+                                        {
+                                            "category_id": 4,
+                                            "code": "comedy",
+                                            "category_name": "Comedy"
+                                        },
+                                        {
+                                            "category_id": 5,
+                                            "code": "theatre_dance",
+                                            "category_name": "Theatre & dance"
+                                        },
+                                        {
+                                            "category_id": 6,
+                                            "code": "arts_exhibitions",
+                                            "category_name": "Arts & exhibitions"
+                                        },
+                                        {
+                                            "category_id": 7,
+                                            "code": "film",
+                                            "category_name": "Film"
+                                        },
+                                        {
+                                            "category_id": 8,
+                                            "code": "sports",
+                                            "category_name": "Sport"
+                                        },
+                                        {
+                                            "category_id": 9,
+                                            "code": "classes",
+                                            "category_name": "Classes & workshops"
+                                        },
+                                        {
+                                            "category_id": 10,
+                                            "code": "food_drink",
+                                            "category_name": "Food & drink"
+                                        },
+                                        {
+                                            "category_id": 11,
+                                            "code": "family",
+                                            "category_name": "Family & kids"
+                                        },
+                                        {
+                                            "category_id": 12,
+                                            "code": "other",
+                                            "category_name": "Other"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid API key, or disabled account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error."
+                    }
+                }
+            }
+        },
+        "/event-currencies": {
+            "get": {
+                "operationId": "listEventCurrencies",
+                "summary": "Event Currencies",
+                "description": "The currency codes a ticket price may be quoted in: every currency with an exchange rate on file, which is what lets the app sort events by price across currencies. Use one of these for `currency` on publish and edit. This is the currency members see on the price pill; it has no effect on what you are charged.",
+                "tags": [
+                    "Events"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#eventCurrenciesSectionid"
+                },
+                "responses": {
+                    "200": {
+                        "description": "Currencies returned successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "currencies": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "currencies": [
+                                        "AED",
+                                        "AUD",
+                                        "CAD",
+                                        "CHF",
+                                        "DKK",
+                                        "EUR",
+                                        "GBP",
+                                        "MXN",
+                                        "NOK",
+                                        "NZD",
+                                        "PLN",
+                                        "SEK",
+                                        "USD"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid API key, or disabled account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/event-config": {
+            "get": {
+                "operationId": "getEventConfig",
+                "summary": "Event Config",
+                "description": "What publishing costs, your own balance (the API key owner's, which pays for what you publish) and the Organisation total, whether LIVE publishing is open, the accepted currencies and the image limits. Useful before a publish, or to show the fee in your own system. `listing_fee` is £10 converted at the day's European Central Bank reference rate into your organisation's billing currency (`currency`); `exchange_rate_per_gbp` is the rate used and `exchange_rate_date` its date (`1` and `null` for GBP). All three are `null` when your billing currency cannot be billed right now (see `E6` on Publish Event). `environment` is your API key's mode (`TEST` or `LIVE`), and `balance` and `organisation_balance` are the balances for that mode: **TEST and LIVE balances are separate**, so a TEST key never shows the LIVE balance.",
+                "tags": [
+                    "Events"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#eventConfigSectionid"
+                },
+                "responses": {
+                    "200": {
+                        "description": "Returned successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "listing_fee": {
+                                            "type": "integer"
+                                        },
+                                        "currency": {
+                                            "type": "string"
+                                        },
+                                        "exchange_rate_per_gbp": {
+                                            "type": "integer"
+                                        },
+                                        "exchange_rate_date": {
+                                            "description": "Can be null."
+                                        },
+                                        "environment": {
+                                            "type": "string"
+                                        },
+                                        "balance": {
+                                            "type": "number"
+                                        },
+                                        "organisation_balance": {
+                                            "type": "number"
+                                        },
+                                        "live_publishing_open": {
+                                            "type": "boolean"
+                                        },
+                                        "currencies": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "image": {
+                                            "type": "object",
+                                            "properties": {
+                                                "max_mb": {
+                                                    "type": "integer"
+                                                },
+                                                "min_width": {
+                                                    "type": "integer"
+                                                },
+                                                "min_height": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        },
+                                        "max_years_ahead": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "listing_fee": 10,
+                                    "currency": "GBP",
+                                    "exchange_rate_per_gbp": 1,
+                                    "exchange_rate_date": null,
+                                    "environment": "LIVE",
+                                    "balance": 42.5,
+                                    "organisation_balance": 42.5,
+                                    "live_publishing_open": true,
+                                    "currencies": [
+                                        "AED",
+                                        "AUD",
+                                        "CAD",
+                                        "CHF",
+                                        "DKK",
+                                        "EUR",
+                                        "GBP",
+                                        "MXN",
+                                        "NOK",
+                                        "NZD",
+                                        "PLN",
+                                        "SEK",
+                                        "USD"
+                                    ],
+                                    "image": {
+                                        "max_mb": 10,
+                                        "min_width": 1280,
+                                        "min_height": 720
+                                    },
+                                    "max_years_ahead": 5
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid API key, or disabled account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "apiKey": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "x-api-key",
+                "description": "Created in the Ad Portal under Manage API Keys. Shown once; Roll key replaces a lost one. One key per mode (TEST or LIVE)."
+            }
+        },
+        "schemas": {
+            "Category": {
+                "type": "object",
+                "description": "An Offer category, or an Event category.",
+                "properties": {
+                    "category_id": {
+                        "type": "integer",
+                        "description": "Unique ID of the category. Example: `1`"
+                    },
+                    "category_name": {
+                        "type": "string",
+                        "description": "Name of the category. Example: `\"Retail\"`"
+                    }
+                }
+            },
+            "Interest": {
+                "type": "object",
+                "description": "An interest that an Offer can target.",
+                "properties": {
+                    "interest_id": {
+                        "type": "integer",
+                        "description": "Unique ID of the interest. Example: `3`"
+                    },
+                    "interest_name": {
+                        "type": "string",
+                        "description": "Name of the interest. Example: `\"Cooking\"`"
+                    }
+                }
+            },
+            "ReturnCode": {
+                "type": "object",
+                "description": "The body of an error response: a return code, scoped to the endpoint, and a message.",
+                "properties": {
+                    "return_code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "S1/S2 on success, E1–E16 on error. The meaning depends on the endpoint: see its x-return-codes."
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "What went wrong, in English."
+                    }
+                }
+            }
+        }
+    }
+}
