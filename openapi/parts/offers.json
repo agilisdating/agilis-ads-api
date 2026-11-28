@@ -1,0 +1,1433 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Agilis Advertising REST API: Offers",
+        "version": "1.0.0",
+        "summary": "Create, pause, resume and delete Offers shown to Agilis members nearby, estimate their price and read their results.",
+        "description": "Return codes are in the JSON body (`return_code`). They are scoped to the endpoint: the same code can mean different things on different endpoints, so read each operation's `x-return-codes`.\n\nRate limits: 60 requests a minute per API key, uploads included. Responses carry `X-RateLimit-Limit` and `X-RateLimit-Remaining`; over the limit the API returns 429 with `Retry-After`. Repeated requests with an invalid key are refused for a while with 429 and `Retry-After`. Every bad key returns the same 401 Unauthorised. TEST Offers and Events are deleted 30 days after they end.\n\nHuman-readable reference: https://www.agilis.dating/api-doc · Markdown: https://www.agilis.dating/api-doc.md",
+        "contact": {
+            "name": "Agilis support",
+            "email": "help@agilis.dating",
+            "url": "https://www.agilis.dating/api-doc"
+        },
+        "termsOfService": "https://www.agilis.dating/business/terms"
+    },
+    "servers": [
+        {
+            "url": "https://ads.agilis.dating",
+            "description": "Production. TEST or LIVE is chosen by the API key (pk_test_ / pk_live_) and the environment parameter."
+        }
+    ],
+    "security": [
+        {
+            "apiKey": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Offers"
+        }
+    ],
+    "paths": {
+        "/offers/price-estimate": {
+            "post": {
+                "operationId": "estimateOfferPrice",
+                "summary": "Offer Price Estimate",
+                "description": "Calculates what an offer will cost before it is created: its size in Ad Units (duration in hours × the number of Agilis users it would reach) and what those units cost in money. Only active, non-banned accounts are counted. Pass the same `gender` and `interests` values you intend to create the offer with, otherwise the estimate will be higher than the amount actually charged.\n\n`price_estimate` is a number of **Ad Units**, not money. `estimated_cost` is the **money** the offer will cost, and is the figure to compare with your balance.\n\nThere is no `currency` parameter: the estimate is always in your organisation's billing currency, named in the response's `currency` field.",
+                "tags": [
+                    "Offers"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#priceEstimateSectionid"
+                },
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "start_datetime": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "ISO 8601, UTC. Now or later: a start more than 60 seconds before now (UTC) is refused with `E1`. Example: `\"2027-07-10T08:00:00Z\"`"
+                                    },
+                                    "end_datetime": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "ISO 8601, UTC. Example: `\"2027-07-12T20:30:00Z\"`"
+                                    },
+                                    "location": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "number"
+                                        },
+                                        "maxItems": 2,
+                                        "minItems": 2,
+                                        "description": "Latitude and longitude. Example: `[51.5074, -0.1278]`"
+                                    },
+                                    "radius": {
+                                        "type": "integer",
+                                        "minimum": 5,
+                                        "maximum": 30,
+                                        "description": "Miles, minimum 5, maximum 30. Example: `10`"
+                                    },
+                                    "gender": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Male",
+                                                "Female",
+                                                "Non-binary",
+                                                "All"
+                                            ]
+                                        },
+                                        "description": "One or more of `Male`, `Female`, `Non-binary`, `All`. Omit, or include `All`, to reach every gender. Example: `[\"Male\", \"Female\"]`"
+                                    },
+                                    "interests": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "description": "Interest ids from `GET /interests`. A user matches if they share any of them. Omit to apply no interest filter. Example: `[3, 7]`"
+                                    },
+                                    "environment": {
+                                        "type": "string",
+                                        "enum": [
+                                            "TEST",
+                                            "LIVE",
+                                            "test",
+                                            "live"
+                                        ],
+                                        "description": "`TEST` or `LIVE`. Defaults to your API key's own mode. If sent, it must be your key's mode (HTTP 403 otherwise). The Ad Unit price is the same in both."
+                                    }
+                                },
+                                "required": [
+                                    "start_datetime",
+                                    "end_datetime",
+                                    "location",
+                                    "radius"
+                                ]
+                            },
+                            "example": {
+                                "start_datetime": "2027-07-10T08:00:00Z",
+                                "end_datetime": "2027-07-12T20:30:00Z",
+                                "location": [
+                                    51.5074,
+                                    -0.1278
+                                ],
+                                "radius": 10,
+                                "gender": [
+                                    "Male",
+                                    "Female"
+                                ],
+                                "interests": [
+                                    3,
+                                    7
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "S1: Estimate calculated successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "return_code": {
+                                            "type": "string"
+                                        },
+                                        "price_estimate": {
+                                            "type": "integer",
+                                            "description": "Size of the offer in **Ad Units**. Not money."
+                                        },
+                                        "matching_users": {
+                                            "type": "integer",
+                                            "description": "Agilis users the offer would reach. `0` means it cannot be created as specified: widen the radius or broaden the targeting."
+                                        },
+                                        "ad_units": {
+                                            "type": "integer",
+                                            "description": "The same figure, under a clearer name. `price_estimate` is kept for existing integrations."
+                                        },
+                                        "ad_unit_price": {
+                                            "type": "number",
+                                            "description": "Price of one Ad Unit in `currency`, to 6 decimal places: £0.001 × the day's European Central Bank rate."
+                                        },
+                                        "estimated_cost": {
+                                            "type": "number",
+                                            "description": "**The money the offer will cost.** Compare this with your balance."
+                                        },
+                                        "currency": {
+                                            "type": "string",
+                                            "description": "Your organisation's billing currency."
+                                        },
+                                        "exchange_rate_per_gbp": {
+                                            "type": "integer",
+                                            "description": "The rate used, per pound sterling. `1` for GBP."
+                                        },
+                                        "exchange_rate_date": {
+                                            "description": "The rate's date (`YYYY-MM-DD`); `null` for GBP."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "return_code": "S1",
+                                    "price_estimate": 110110,
+                                    "matching_users": 1820,
+                                    "ad_units": 110110,
+                                    "ad_unit_price": 0.001,
+                                    "estimated_cost": 110.11,
+                                    "currency": "GBP",
+                                    "exchange_rate_per_gbp": 1,
+                                    "exchange_rate_date": null
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "E1: One or more inputs are missing or invalid, or `start_datetime` is in the past (more than 60 seconds before now).\n\nE2: A date/time is not in valid ISO 8601 format.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication failure.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "E1: `environment` is not your API key's mode.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-return-codes": {
+                    "S1": "Estimate calculated successfully.",
+                    "E1": "One or more inputs are missing or invalid, or `start_datetime` is in the past (more than 60 seconds before now). / `environment` is not your API key's mode.",
+                    "E2": "A date/time is not in valid ISO 8601 format."
+                }
+            }
+        },
+        "/offers": {
+            "post": {
+                "operationId": "createOffer",
+                "summary": "Create Offer",
+                "description": "Creates a new offer for the authenticated advertiser. The request is sent as `multipart/form-data` with the offer image supplied as a binary file stream. The image is checked by automated content moderation before the offer is created: if it fails, nothing is created and nothing is charged.\n\n**Paying by Stripe link** (`payment_method=E`): the offer is created in **Awaiting Payment** and the response carries a `payment_url`. Stripe's `checkout.session.completed` webhook activates it: **Active** if its start has passed, **Scheduled** if not. An organisation registered in the UK pays VAT at 20% on top, as a separate line on the Stripe page. Stripe will not take a card payment below its minimum for the currency (for example £0.30, US$0.50 or €0.50): such an offer is refused with `E1`.\n\n**Paying from balance** (`payment_method=B`): the offer's price is deducted at once, from the balance of the offer's own mode (TEST and LIVE balances are separate). Compare your balance with `estimated_cost` from the price estimate, never `price_estimate`.\n\nThere is no `currency` parameter: every offer is priced and charged in your organisation's billing currency, named in the response.",
+                "tags": [
+                    "Offers"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#createOfferSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "description": "A unique value you generate per offer (for example a UUID v4). Replaying the same key safely retries the request without creating a duplicate offer or a second Stripe payment; the original response, including any `payment_url`, is returned verbatim. Missing: HTTP 400 / `E1`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "dry_run",
+                        "in": "query",
+                        "required": false,
+                        "description": "Optional. `true` checks everything and answers with what the offer would cost and how it would be paid (`price`, `matching_members`, and `balance_after` or `card_amount`), marked `dry_run: true`. Nothing is created or charged, and no `Idempotency-Key` is needed. The image is checked for type and size; its content moderation runs only when the offer is created.",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "category_id": {
+                                        "type": "integer",
+                                        "description": "A valid category ID from the Category List API. Example: `1`"
+                                    },
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 40,
+                                        "description": "Up to 40 characters. Example: `\"20% off summer sale\"`"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "maxLength": 500,
+                                        "description": "Up to 500 characters. Example: `\"Discount valid through July\"`"
+                                    },
+                                    "terms_and_conditions": {
+                                        "type": "string",
+                                        "maxLength": 500,
+                                        "description": "Up to 500 characters. Example: `\"Valid online only.\"`"
+                                    },
+                                    "advertised_name": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "description": "The business name members see on the offer instead of your organisation's trading name — for example when an agency advertises for a client. Up to 100 characters; must not start with http://, https:// or www.; no HTML or line breaks. Omit or send empty to show your trading name. You must be authorised by the business you name. Invoices and analytics stay in your organisation's name. Example: `\"Brighton Bakehouse\"`"
+                                    },
+                                    "push_notification_title": {
+                                        "type": "string",
+                                        "minLength": 5,
+                                        "maxLength": 50,
+                                        "description": "The title of the notification sent to members who chose to get offer notifications, shown on their lock screen as you write it (it is not translated). 5 to 50 characters. Missing: `E10`; too short: `E11`; too long: `E12`; refused by content moderation: `E13`. Example: `\"20% off this summer\"`"
+                                    },
+                                    "push_notification_message": {
+                                        "type": "string",
+                                        "minLength": 5,
+                                        "maxLength": 150,
+                                        "description": "The notification's message, under the title. 5 to 150 characters; phones cut it at about 100, so keep it short. Same return codes as `push_notification_title`. Example: `\"Show this at the till for 20% off everything until the end of July.\"`"
+                                    },
+                                    "button_preset": {
+                                        "type": "string",
+                                        "enum": [
+                                            "claim_offer",
+                                            "visit_website",
+                                            "install_app",
+                                            "book_now",
+                                            "get_directions",
+                                            "custom"
+                                        ],
+                                        "description": "The words on the offer's button in the Agilis apps and web app: `claim_offer` (Claim Offer, the default when omitted or empty), `visit_website` (Visit our website), `install_app` (Install our app), `book_now` (Book now), `get_directions` (Get directions) or `custom` (your own words, in `button_text`). Ready-made texts are shown in each member's app language. Whatever the text, the button opens your `url`. Any other value: `E14`. Example: `\"book_now\"`"
+                                    },
+                                    "button_text": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 20,
+                                        "description": "Your own button text: required when `button_preset` is `custom`, ignored otherwise. Plain text on one line, 1 to 20 characters after trimming, shown exactly as you write it in every language (it is not translated). Missing, empty, with a line break or with HTML: `E15`; over 20 characters: `E16`. Example: `\"Show this at the bar\"`"
+                                    },
+                                    "url": {
+                                        "type": "string",
+                                        "format": "uri",
+                                        "description": "Your offer page. Example: `\"https://advertiseroffer.com\"`"
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "contentMediaType": "application/octet-stream",
+                                        "description": "JPG, PNG or GIF, maximum 5 MB, sent as a binary file stream. Recommended size: `1080x1080px`"
+                                    },
+                                    "location": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "number"
+                                        },
+                                        "maxItems": 2,
+                                        "minItems": 2,
+                                        "description": "Latitude and longitude as two values. Example: `[51.5074, -0.1278]`"
+                                    },
+                                    "radius": {
+                                        "type": "integer",
+                                        "minimum": 5,
+                                        "maximum": 30,
+                                        "description": "Radius in miles, minimum 5, maximum 30. Example: `10`"
+                                    },
+                                    "gender": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Male",
+                                                "Female",
+                                                "Non-binary",
+                                                "All"
+                                            ]
+                                        },
+                                        "description": "Target specific genders. One or more of `Male`, `Female`, `Non-binary`, `All`. Omitting the field, or including `All`, reaches every gender. Narrowing this reduces the audience and therefore the price. Example: `[\"Male\", \"Female\"]`"
+                                    },
+                                    "interests": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "description": "Target users by interest, using ids from `GET /interests`. A user matches if they share **any** of the interests supplied. Omitting the field applies no interest filter. Narrowing this reduces the audience and therefore the price. Example: `[3, 7]`"
+                                    },
+                                    "start_datetime": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "ISO 8601, UTC. Now or later: a start more than 60 seconds before now (UTC) is refused with `E1`. Example: `\"2027-07-10T08:00:00Z\"`"
+                                    },
+                                    "expiry_datetime": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "ISO 8601, UTC; at least 60 seconds after `start_datetime`. Example: `\"2027-07-12T20:30:00Z\"`"
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "E",
+                                            "B"
+                                        ],
+                                        "description": "`E` = Stripe payment link by email; `B` = deduct from your own balance: the balance of the person who owns the API key, in the offer's mode (TEST and LIVE balances are separate). The Organisation balance in the Ad Portal is everyone's balances added together, not a shared wallet. For `E`, an organisation registered in the UK is charged VAT at 20% on top, as a separate line on the Stripe payment page. The offer's price and balance stay net of VAT."
+                                    },
+                                    "environment": {
+                                        "type": "string",
+                                        "enum": [
+                                            "TEST",
+                                            "LIVE"
+                                        ],
+                                        "description": "`TEST` or `LIVE`, in capitals. Must be your API key's own mode: a `pk_live_` key creates LIVE offers only, a `pk_test_` key TEST offers only."
+                                    }
+                                },
+                                "required": [
+                                    "category_id",
+                                    "title",
+                                    "description",
+                                    "push_notification_title",
+                                    "push_notification_message",
+                                    "url",
+                                    "image",
+                                    "location",
+                                    "radius",
+                                    "start_datetime",
+                                    "expiry_datetime",
+                                    "payment_method",
+                                    "environment"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "S1: Offer created: payment link issued (`E`), or Active/Scheduled if paid from balance (`B`).\n\nE2: The image failed automated content moderation: nothing created. Choose a different image.\n\nE3: Your balance (the API key owner's, in the offer's mode) is less than the offer's cost (`payment_method=B` only): top up in the Ad Portal and retry.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "return_code": {
+                                            "type": "string"
+                                        },
+                                        "offer_id": {
+                                            "type": "integer"
+                                        },
+                                        "status": {
+                                            "type": "string"
+                                        },
+                                        "payment_url": {
+                                            "type": "string"
+                                        },
+                                        "currency": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "return_code": "S1",
+                                    "offer_id": 45,
+                                    "status": "Awaiting Payment",
+                                    "payment_url": "https://checkout.stripe.com/c/pay/cs_live_...",
+                                    "currency": "GBP"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "E1: One or more inputs are missing or invalid: an invalid datetime, a duration under 60 seconds, a radius outside 5 to 30 miles, an oversized image or wrong file type, an unrecognised `gender` value, an unknown `interests` id, or an `advertised_name` over 100 characters, starting with http://, https:// or www., or containing HTML or a line break.\n\nE1: `start_datetime` is more than 60 seconds before now (UTC): nothing created or charged. Message: \"start_datetime cannot be in the past. Use the current time or later.\"\n\nE1: A card payment (`payment_method=E`) below Stripe's minimum for your currency: nothing created; the message names the minimum.\n\nE1: The `Idempotency-Key` header is missing. Message: \"Idempotency-Key header is required.\"\n\nE4: Offer quota limit exceeded: the user or organisation has reached its maximum number of offers.\n\nE5: No Agilis users match the targeting supplied: nothing created. Widen the radius or broaden the `gender` or `interests` targeting.\n\nE6: Your billing currency cannot be billed right now: nothing created or charged. The message is either `Your organisation's currency (XYZ) is not one Agilis bills in. An Org Admin can choose a supported billing currency in the Ad Portal. You have not been charged.` or `Prices in XYZ are temporarily unavailable because the exchange rate is out of date. Please try again later. You have not been charged.`, with your currency code in place of XYZ.\n\nE10: `push_notification_title` or `push_notification_message` is missing or empty: nothing created or charged. The message names the field, for example \"push_notification_title is required.\"\n\nE11: `push_notification_title` or `push_notification_message` is shorter than 5 characters: nothing created or charged. The message names the field.\n\nE12: `push_notification_title` is over 50 characters, or `push_notification_message` over 150: nothing created or charged. The message names the field and its limit.\n\nE13: The notification text failed automated content moderation: nothing created or charged. The message names the field, for example \"push_notification_message can't be used in a notification. Please change it.\"\n\nE14: `button_preset` is not one of `claim_offer`, `visit_website`, `install_app`, `book_now`, `get_directions` or `custom`: nothing created or charged.\n\nE15: `button_preset` is `custom` and `button_text` is missing, empty, or contains a line break or HTML: nothing created or charged. Message: \"button_text is required when button_preset is custom, as plain text on one line.\"\n\nE16: `button_text` is over 20 characters: nothing created or charged. Message: \"button_text must be 20 characters or fewer.\"",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication failure.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "E1: `environment` is not your API key's mode: nothing created or charged. Use a key created in that mode.\n\nE9: Your organisation has not accepted the current Agilis Advertising Terms and Conditions: nothing created or charged. An Org Admin must accept them in the Ad Portal ([adportal.agilis.dating](https://adportal.agilis.dating)); then retry with the same `Idempotency-Key`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "The `Idempotency-Key` was reused while the first request is still being processed: retry shortly.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "The `Idempotency-Key` was reused with a different payload.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error."
+                    }
+                },
+                "x-return-codes": {
+                    "S1": "Offer created: payment link issued (`E`), or Active/Scheduled if paid from balance (`B`).",
+                    "E1": "One or more inputs are missing or invalid: an invalid datetime, a duration under 60 seconds, a radius outside 5 to 30 miles, an oversized image or wrong file type, an unrecognised `gender` value, an unknown `interests` id, or an `advertised_name` over 100 characters, starting with http://, https:// or www., or containing HTML or a line break. / `start_datetime` is more than 60 seconds before now (UTC): nothing created or charged. Message: \"start_datetime cannot be in the past. Use the current time or later.\" / A card payment (`payment_method=E`) below Stripe's minimum for your currency: nothing created; the message names the minimum. / The `Idempotency-Key` header is missing. Message: \"Idempotency-Key header is required.\" / `environment` is not your API key's mode: nothing created or charged. Use a key created in that mode.",
+                    "E2": "The image failed automated content moderation: nothing created. Choose a different image.",
+                    "E3": "Your balance (the API key owner's, in the offer's mode) is less than the offer's cost (`payment_method=B` only): top up in the Ad Portal and retry.",
+                    "E4": "Offer quota limit exceeded: the user or organisation has reached its maximum number of offers.",
+                    "E5": "No Agilis users match the targeting supplied: nothing created. Widen the radius or broaden the `gender` or `interests` targeting.",
+                    "E6": "Your billing currency cannot be billed right now: nothing created or charged. The message is either `Your organisation's currency (XYZ) is not one Agilis bills in. An Org Admin can choose a supported billing currency in the Ad Portal. You have not been charged.` or `Prices in XYZ are temporarily unavailable because the exchange rate is out of date. Please try again later. You have not been charged.`, with your currency code in place of XYZ.",
+                    "E10": "`push_notification_title` or `push_notification_message` is missing or empty: nothing created or charged. The message names the field, for example \"push_notification_title is required.\"",
+                    "E11": "`push_notification_title` or `push_notification_message` is shorter than 5 characters: nothing created or charged. The message names the field.",
+                    "E12": "`push_notification_title` is over 50 characters, or `push_notification_message` over 150: nothing created or charged. The message names the field and its limit.",
+                    "E13": "The notification text failed automated content moderation: nothing created or charged. The message names the field, for example \"push_notification_message can't be used in a notification. Please change it.\"",
+                    "E14": "`button_preset` is not one of `claim_offer`, `visit_website`, `install_app`, `book_now`, `get_directions` or `custom`: nothing created or charged.",
+                    "E15": "`button_preset` is `custom` and `button_text` is missing, empty, or contains a line break or HTML: nothing created or charged. Message: \"button_text is required when button_preset is custom, as plain text on one line.\"",
+                    "E16": "`button_text` is over 20 characters: nothing created or charged. Message: \"button_text must be 20 characters or fewer.\"",
+                    "E9": "Your organisation has not accepted the current Agilis Advertising Terms and Conditions: nothing created or charged. An Org Admin must accept them in the Ad Portal ([adportal.agilis.dating](https://adportal.agilis.dating)); then retry with the same `Idempotency-Key`."
+                }
+            },
+            "get": {
+                "operationId": "listOffers",
+                "summary": "View Offers",
+                "description": "Returns a **paginated** list of offers created by the authenticated advertiser for the requested environment, newest first. Offers whose image was rejected by content moderation are never created, so they are not returned, and deleted offers are excluded. Page through results with `limit` and `cursor`.",
+                "tags": [
+                    "Offers"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#viewOfferSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "environment",
+                        "in": "query",
+                        "required": true,
+                        "description": "`test` or `live` (case-insensitive). Must be your API key's own mode. Example: `/offers?environment=test`",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "test",
+                                "live",
+                                "TEST",
+                                "LIVE"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Page size. Default `20`, maximum `100`.",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "Opaque token from the previous page's `next_cursor`. Omit for the first page.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "offer_status",
+                        "in": "query",
+                        "required": false,
+                        "description": "Lifecycle filter: `awaiting_payment`, `active`, `paused` or `ended` (case-insensitive).",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "awaiting_payment",
+                                "active",
+                                "paused",
+                                "ended"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "created_after",
+                        "in": "query",
+                        "required": false,
+                        "description": "ISO 8601, UTC. Offers created at or after this time.",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "created_before",
+                        "in": "query",
+                        "required": false,
+                        "description": "ISO 8601, UTC. Offers created at or before this time.",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Page returned (empty `data` array if none match).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Offer"
+                                            }
+                                        },
+                                        "pagination": {
+                                            "$ref": "#/components/schemas/Page"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "data": [
+                                        {
+                                            "offer_id": 45,
+                                            "title": "20% off summer sale",
+                                            "category": "Retail",
+                                            "description": "Discount valid through July",
+                                            "terms_and_conditions": "Valid online only.",
+                                            "advertised_name": null,
+                                            "push_notification_title": "20% off this summer",
+                                            "push_notification_message": "Show this at the till for 20% off everything until the end of July.",
+                                            "button_preset": "claim_offer",
+                                            "button_text": null,
+                                            "url": "https://advertiseroffer.com",
+                                            "image": "https://ads.agilis.dating/92/offers/45/offer_orig.png",
+                                            "latitude": 51.5074,
+                                            "longitude": -0.1278,
+                                            "radius": 10,
+                                            "gender": [
+                                                "Male",
+                                                "Female"
+                                            ],
+                                            "interests": [
+                                                {
+                                                    "interest_id": 3,
+                                                    "interest_name": "Cooking"
+                                                },
+                                                {
+                                                    "interest_id": 7,
+                                                    "interest_name": "Fitness"
+                                                }
+                                            ],
+                                            "start_datetime": "2027-07-10T08:00:00Z",
+                                            "expiry_datetime": "2027-07-12T20:30:00Z",
+                                            "creation_datetime": "2027-06-01T10:00:00Z",
+                                            "offer_status": "Active",
+                                            "status": "enabled"
+                                        }
+                                    ],
+                                    "pagination": {
+                                        "limit": 20,
+                                        "count": 1,
+                                        "has_more": false,
+                                        "next_cursor": null
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameter (`limit`, `cursor`, `offer_status` or date).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid API key or disabled account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "`environment` is not your API key's mode.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error."
+                    }
+                }
+            }
+        },
+        "/offers/{offer_id}": {
+            "get": {
+                "operationId": "getOffer",
+                "summary": "View an Offer",
+                "description": "Returns one offer, with the same fields as an item of `GET /offers`, in your API key's mode. An Org Admin's key can read any offer in the organisation; other keys read their own offers. Read only: offers cannot be edited.",
+                "tags": [
+                    "Offers"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#viewOneOfferSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "offer_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Path parameter. Example: `45`",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Offer returned.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Offer"
+                                },
+                                "example": {
+                                    "offer_id": 45,
+                                    "title": "20% off summer sale",
+                                    "category": "Retail",
+                                    "description": "Discount valid through July",
+                                    "terms_and_conditions": "Valid online only.",
+                                    "advertised_name": null,
+                                    "push_notification_title": "20% off this summer",
+                                    "push_notification_message": "Show this at the till for 20% off everything until the end of July.",
+                                    "button_preset": "claim_offer",
+                                    "button_text": null,
+                                    "url": "https://advertiseroffer.com",
+                                    "image": "https://ads.agilis.dating/92/offers/45/offer_orig.png",
+                                    "latitude": 51.5074,
+                                    "longitude": -0.1278,
+                                    "radius": 10,
+                                    "gender": [
+                                        "Male",
+                                        "Female"
+                                    ],
+                                    "interests": [
+                                        {
+                                            "interest_id": 3,
+                                            "interest_name": "Cooking"
+                                        },
+                                        {
+                                            "interest_id": 7,
+                                            "interest_name": "Fitness"
+                                        }
+                                    ],
+                                    "start_datetime": "2027-07-10T08:00:00Z",
+                                    "expiry_datetime": "2027-07-12T20:30:00Z",
+                                    "creation_datetime": "2027-06-01T10:00:00Z",
+                                    "offer_status": "Active",
+                                    "status": "enabled"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid API key or disabled account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "E1: \"Offer not found\": no such offer, or it belongs to another account, is in the other mode, or was deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error."
+                    }
+                },
+                "x-return-codes": {
+                    "E1": "\"Offer not found\": no such offer, or it belongs to another account, is in the other mode, or was deleted."
+                }
+            },
+            "delete": {
+                "operationId": "deleteOffer",
+                "summary": "Delete Offer",
+                "description": "Deletes an offer belonging to the authenticated account, in your API key's mode (an offer of the other mode is not found).\n\n**Awaiting Payment:** the offer's Stripe payment page is closed first, so it can no longer be paid. If Stripe reports that the payment has just been completed, or the page cannot be closed, nothing is deleted (`E6`, `E7` below).\n\n**Paid offers** (Active, Scheduled or Paused): the offer's Unused Time is credited to your balance in the offer's own mode. Unused Time is the part of the scheduled period in which the offer did not run: the time from the deletion to the scheduled end, plus any time it spent paused. An offer deleted before it starts is credited in full. The credit is net of VAT and goes to your balance, never back to a card.",
+                "tags": [
+                    "Offers"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#deleteOfferSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "dry_run",
+                        "in": "query",
+                        "required": false,
+                        "description": "Optional. `true` answers with what deleting would do, including the Unused Time `refund` it would credit, marked `dry_run: true`. Nothing is deleted.",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "offer_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Path parameter. Example: `45`",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "S1: Offer deleted successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "return_code": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "return_code": "S1",
+                                    "message": "Offer has been deleted."
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "E1: Invalid input, or \"Offer not found\": the offer does not belong to this account or is in the other mode.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "E6: The payment for this offer has just been completed, so it is no longer awaiting payment. Nothing has been deleted. Retrieve the offer again; if you still delete it, its Unused Time is credited to your balance.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "E7: The payment page could not be closed. Nothing has been deleted. Try again in a few minutes."
+                    }
+                },
+                "x-return-codes": {
+                    "S1": "Offer deleted successfully.",
+                    "E1": "Invalid input, or \"Offer not found\": the offer does not belong to this account or is in the other mode.",
+                    "E6": "The payment for this offer has just been completed, so it is no longer awaiting payment. Nothing has been deleted. Retrieve the offer again; if you still delete it, its Unused Time is credited to your balance.",
+                    "E7": "The payment page could not be closed. Nothing has been deleted. Try again in a few minutes."
+                }
+            }
+        },
+        "/offers/{offer_id}/pause": {
+            "post": {
+                "operationId": "pauseOffer",
+                "summary": "Pause Offer",
+                "description": "Pauses a running offer. The offer must belong to the account that owns the API key and be in the key's mode (TEST or LIVE). Any other offer returns HTTP 401 with `E1`. Time spent paused is Unused Time: it is credited to your balance if you later delete the offer.",
+                "tags": [
+                    "Offers"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#pauseResumeOfferSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "offer_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Path parameter. Example: `45`",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "S1: Offer paused successfully.\n\nE2: Offer has already ended.\n\nE3: Offer is already paused.\n\nE5: Offer is awaiting payment.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "return_code": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "return_code": "S1",
+                                    "message": "Offer has been paused."
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "E1: Invalid API key, disabled account, or the offer does not belong to this account or is in the other mode.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-return-codes": {
+                    "S1": "Offer paused successfully.",
+                    "E1": "Invalid API key, disabled account, or the offer does not belong to this account or is in the other mode.",
+                    "E2": "Offer has already ended.",
+                    "E3": "Offer is already paused.",
+                    "E5": "Offer is awaiting payment."
+                }
+            }
+        },
+        "/offers/{offer_id}/resume": {
+            "post": {
+                "operationId": "resumeOffer",
+                "summary": "Resume Offer",
+                "description": "Resumes a paused offer. The offer must belong to the account that owns the API key and be in the key's mode. Any other offer returns HTTP 401 with `E1`.",
+                "tags": [
+                    "Offers"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#resumeOfferSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "offer_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Path parameter. Example: `45`",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "S2: Offer resumed successfully.\n\nE2: Offer has already ended.\n\nE4: Offer is already running.\n\nE5: Offer is awaiting payment.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "return_code": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "return_code": "S2",
+                                    "message": "Offer has been resumed."
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "E1: Invalid API key, disabled account, or the offer does not belong to this account or is in the other mode.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-return-codes": {
+                    "S2": "Offer resumed successfully.",
+                    "E1": "Invalid API key, disabled account, or the offer does not belong to this account or is in the other mode.",
+                    "E2": "Offer has already ended.",
+                    "E4": "Offer is already running.",
+                    "E5": "Offer is awaiting payment."
+                }
+            }
+        },
+        "/offers/{offer_id}/analytics": {
+            "get": {
+                "operationId": "getOfferAnalytics",
+                "summary": "View Offer Analytics",
+                "description": "Returns view and click metrics for a specific offer over the requested time interval. The offer must belong to the account that owns the API key and be in the key's mode.",
+                "tags": [
+                    "Offers"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#analyticsSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "offer_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Path parameter. Example: `45`",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "interval",
+                        "in": "query",
+                        "required": true,
+                        "description": "One of `24h`, `7d`, `30d`, `60d`, `90d` or `all`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "24h",
+                                "7d",
+                                "30d",
+                                "60d",
+                                "90d",
+                                "all"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Analytics returned successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "offer_id": {
+                                            "type": "integer"
+                                        },
+                                        "interval": {
+                                            "type": "string"
+                                        },
+                                        "start_datetime": {
+                                            "type": "string"
+                                        },
+                                        "end_datetime": {
+                                            "type": "string"
+                                        },
+                                        "status": {
+                                            "type": "string"
+                                        },
+                                        "metrics": {
+                                            "type": "object",
+                                            "properties": {
+                                                "views": {
+                                                    "type": "integer"
+                                                },
+                                                "clicks": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "offer_id": 45,
+                                    "interval": "30d",
+                                    "start_datetime": "2027-07-10T08:00:00Z",
+                                    "end_datetime": "2027-08-09T08:00:00Z",
+                                    "status": "Active",
+                                    "metrics": {
+                                        "views": 4789,
+                                        "clicks": 1032
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid API key, disabled account, or the offer does not belong to this account or is in the other mode.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error."
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "apiKey": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "x-api-key",
+                "description": "Created in the Ad Portal under Manage API Keys. Shown once; Roll key replaces a lost one. One key per mode (TEST or LIVE)."
+            }
+        },
+        "schemas": {
+            "Offer": {
+                "type": "object",
+                "description": "An Offer: a time-limited deal shown to Agilis members near the business, in the mode of the API key that reads it.",
+                "properties": {
+                    "offer_id": {
+                        "type": "integer",
+                        "description": "The offer's id."
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "As created."
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "As created."
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "As created."
+                    },
+                    "terms_and_conditions": {
+                        "type": "string",
+                        "description": "As created."
+                    },
+                    "advertised_name": {
+                        "description": "The business name members see; `null` when your trading name is shown."
+                    },
+                    "push_notification_title": {
+                        "type": "string",
+                        "description": "The notification members who opted in get when the offer starts. `null` on offers created before these fields existed: those offers are never sent as a notification."
+                    },
+                    "push_notification_message": {
+                        "type": "string",
+                        "description": "The notification members who opted in get when the offer starts. `null` on offers created before these fields existed: those offers are never sent as a notification."
+                    },
+                    "button_preset": {
+                        "type": "string",
+                        "description": "The button's text: `claim_offer`, `visit_website`, `install_app`, `book_now`, `get_directions` or `custom`. `claim_offer` on offers created before the button text could be chosen."
+                    },
+                    "button_text": {
+                        "description": "Your own button text when `button_preset` is `custom`; otherwise `null`."
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "As created."
+                    },
+                    "image": {
+                        "type": "string",
+                        "description": "Signed URL of the image. It expires, so do not store it."
+                    },
+                    "latitude": {
+                        "type": "number",
+                        "description": "Where the offer is shown."
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "description": "Where the offer is shown."
+                    },
+                    "radius": {
+                        "type": "integer",
+                        "description": "Where the offer is shown."
+                    },
+                    "gender": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "For example `[\"Male\",\"Female\"]`; empty when the offer targets every gender."
+                    },
+                    "interests": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Interest"
+                        },
+                        "description": "`{interest_id, interest_name}` objects; empty when no interest targeting was applied."
+                    },
+                    "start_datetime": {
+                        "type": "string",
+                        "description": "ISO 8601, UTC."
+                    },
+                    "expiry_datetime": {
+                        "type": "string",
+                        "description": "ISO 8601, UTC."
+                    },
+                    "creation_datetime": {
+                        "type": "string",
+                        "description": "ISO 8601, UTC."
+                    },
+                    "offer_status": {
+                        "type": "string",
+                        "description": "Awaiting Payment, Active, Scheduled, Paused or Ended."
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "`enabled` or `disabled`: whether an Admin has disabled the offer."
+                    }
+                }
+            },
+            "Interest": {
+                "type": "object",
+                "description": "An interest that an Offer can target.",
+                "properties": {
+                    "interest_id": {
+                        "type": "integer",
+                        "description": "Unique ID of the interest. Example: `3`"
+                    },
+                    "interest_name": {
+                        "type": "string",
+                        "description": "Name of the interest. Example: `\"Cooking\"`"
+                    }
+                }
+            },
+            "Page": {
+                "type": "object",
+                "description": "Where a list response is in the whole list: the page size, how many items this page has, and the cursor for the next page.",
+                "properties": {
+                    "limit": {
+                        "type": "integer",
+                        "description": "The page size asked for (default 20, at most 100)."
+                    },
+                    "count": {
+                        "type": "integer",
+                        "description": "How many items this page has."
+                    },
+                    "has_more": {
+                        "type": "boolean",
+                        "description": "Whether there is another page."
+                    },
+                    "next_cursor": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Pass as `cursor` to get the next page; null on the last page."
+                    }
+                }
+            },
+            "ReturnCode": {
+                "type": "object",
+                "description": "The body of an error response: a return code, scoped to the endpoint, and a message.",
+                "properties": {
+                    "return_code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "S1/S2 on success, E1–E16 on error. The meaning depends on the endpoint: see its x-return-codes."
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "What went wrong, in English."
+                    }
+                }
+            }
+        }
+    }
+}

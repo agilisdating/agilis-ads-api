@@ -1,0 +1,1856 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Agilis Advertising REST API: Events",
+        "version": "1.0.0",
+        "summary": "Preview, publish, edit, reschedule, cancel and delete Event listings, and read their results.",
+        "description": "Return codes are in the JSON body (`return_code`). They are scoped to the endpoint: the same code can mean different things on different endpoints, so read each operation's `x-return-codes`.\n\nRate limits: 60 requests a minute per API key, uploads included. Responses carry `X-RateLimit-Limit` and `X-RateLimit-Remaining`; over the limit the API returns 429 with `Retry-After`. Repeated requests with an invalid key are refused for a while with 429 and `Retry-After`. Every bad key returns the same 401 Unauthorised. TEST Offers and Events are deleted 30 days after they end.\n\nHuman-readable reference: https://www.agilis.dating/api-doc · Markdown: https://www.agilis.dating/api-doc.md",
+        "contact": {
+            "name": "Agilis support",
+            "email": "help@agilis.dating",
+            "url": "https://www.agilis.dating/api-doc"
+        },
+        "termsOfService": "https://www.agilis.dating/business/terms"
+    },
+    "servers": [
+        {
+            "url": "https://ads.agilis.dating",
+            "description": "Production. TEST or LIVE is chosen by the API key (pk_test_ / pk_live_) and the environment parameter."
+        }
+    ],
+    "security": [
+        {
+            "apiKey": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Events"
+        }
+    ],
+    "paths": {
+        "/events/preview": {
+            "post": {
+                "operationId": "previewEvent",
+                "summary": "Preview Event",
+                "description": "Shows you what `POST /events` would do, **without publishing or charging**: the category your wording will get, the fee and your balance, and — if you include an image — the processed picture with its 16:9 crop applied, plus a `preview_token` that `POST /events` accepts instead of the file, so the published image is byte-for-byte the one you saw. Same fields as `POST /events`; `image` and `payment_method` are optional and no `Idempotency-Key` is needed. A rejected image returns `E2` here, before any payment. **Rate-limited** per organisation (60 previews per hour): each preview costs an image check and a classification.",
+                "tags": [
+                    "Events"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#previewEventSectionid"
+                },
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 120,
+                                        "description": "Up to 120 characters."
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "maxLength": 5000,
+                                        "description": "Up to 5,000 characters."
+                                    },
+                                    "venue_name": {
+                                        "type": "string",
+                                        "description": "Example: `Bar Salsa`. Read, with the title and description, to determine the category."
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "description": "Street address of the venue."
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "description": "Example: `London`"
+                                    },
+                                    "country_code": {
+                                        "type": "string",
+                                        "description": "ISO 3166-1 alpha-2. Example: `GB` (not UK)."
+                                    },
+                                    "location": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "number"
+                                        },
+                                        "maxItems": 2,
+                                        "minItems": 2,
+                                        "description": "Latitude first, then longitude, of the venue. Example: `51.5133`, `-0.1300`. **Coordinates are required and an address is not a substitute.** Every member sees how far the venue is from them, and that distance orders the list and drives the radius filter. `address` and `city` are shown to members but are never converted to coordinates on our side."
+                                    },
+                                    "starts_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "ISO 8601, UTC only. Must be in the future and no more than 5 years ahead. Example: `2027-10-16T18:30:00Z`"
+                                    },
+                                    "ends_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "ISO 8601, UTC only. Must be after `starts_at`."
+                                    },
+                                    "url": {
+                                        "type": "string",
+                                        "format": "uri",
+                                        "description": "**Required.** The http(s) address of your own booking page. Members tap through to it to book; Agilis does not sell tickets. An event cannot be published without one."
+                                    },
+                                    "advertised_name": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "description": "The business name members see as “Listed by …” instead of your trading name. Up to 100 characters; must not start with http://, https:// or www.; no HTML or line breaks. Omit or send empty to show your trading name. You must be authorised by the business you name."
+                                    },
+                                    "price_min": {
+                                        "type": "number",
+                                        "description": "Ticket price, shown to members. Omit both to show no price (such events sort after priced ones when members sort by price). Send `0` for both to mark the event as free. Send the same value twice for a single price."
+                                    },
+                                    "price_max": {
+                                        "type": "number",
+                                        "description": "Ticket price, shown to members. Omit both to show no price (such events sort after priced ones when members sort by price). Send `0` for both to mark the event as free. Send the same value twice for a single price."
+                                    },
+                                    "currency": {
+                                        "type": "string",
+                                        "description": "Currency of the ticket price, one of [`GET /event-currencies`](https://www.agilis.dating/api-doc#eventCurrenciesSectionid). Required whenever a price is supplied. It describes the ticket price only and has no effect on what you are charged."
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "contentMediaType": "application/octet-stream",
+                                        "description": "JPG or PNG, detected from the file's content (not its name), up to **10 MB**, at least **1280 × 720** pixels. Members see events at 16:9: the image is scaled to fill a 16:9 frame with its centre kept and the overflow trimmed (a *centred cover crop*), never stretched or letterboxed. Pass `crop[x]`, `crop[y]`, `crop[w]` to choose the area yourself. If the area would be below 1280 × 720 the image is rejected rather than enlarged. Every image is decoded and re-encoded (so only a fresh copy is stored, with EXIF data including GPS removed), content-moderated, and scanned. Use `POST /events/preview` to see the result before paying."
+                                    },
+                                    "crop[x]": {
+                                        "type": "integer",
+                                        "description": "With `image`: the top-left corner and width, in pixels of the uploaded image, of the 16:9 area to use. The height is derived. Minimum width 1280. Omit for the centred cover crop."
+                                    },
+                                    "crop[y]": {
+                                        "type": "integer",
+                                        "description": "With `image`: the top-left corner and width, in pixels of the uploaded image, of the 16:9 area to use. The height is derived. Minimum width 1280. Omit for the centred cover crop."
+                                    },
+                                    "crop[w]": {
+                                        "type": "integer",
+                                        "description": "With `image`: the top-left corner and width, in pixels of the uploaded image, of the 16:9 area to use. The height is derived. Minimum width 1280. Omit for the centred cover crop."
+                                    },
+                                    "environment": {
+                                        "type": "string",
+                                        "enum": [
+                                            "TEST",
+                                            "LIVE"
+                                        ],
+                                        "description": "`TEST` or `LIVE`. Must be your API key's own mode (HTTP 403 otherwise). Decides whether `balance_after` subtracts the fee; `balance` is the balance for that mode."
+                                    }
+                                },
+                                "required": [
+                                    "title",
+                                    "description",
+                                    "venue_name",
+                                    "address",
+                                    "city",
+                                    "country_code",
+                                    "location",
+                                    "starts_at",
+                                    "ends_at",
+                                    "url",
+                                    "environment"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "S1: Preview returned. `category` is what publishing this wording will get; `image.preview_token` is single-use, bound to your organisation and valid for 24 hours (`expires_at`); `image.preview_url` is a short-lived signed link to the processed picture. `listing_fee` is in your billing currency (`currency`). If your billing currency cannot be billed right now, the preview still returns `S1`, with `listing_fee` `null` and `balance_sufficient` `false`, and publishing would return `E6`.\n\nE2: The image failed content moderation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "return_code": {
+                                            "type": "string"
+                                        },
+                                        "category": {
+                                            "$ref": "#/components/schemas/Category"
+                                        },
+                                        "listing_fee": {
+                                            "type": "integer"
+                                        },
+                                        "currency": {
+                                            "type": "string"
+                                        },
+                                        "balance": {
+                                            "type": "number"
+                                        },
+                                        "balance_after": {
+                                            "type": "number"
+                                        },
+                                        "balance_sufficient": {
+                                            "type": "boolean"
+                                        },
+                                        "live_publishing_open": {
+                                            "type": "boolean"
+                                        },
+                                        "price_gbp": {
+                                            "type": "integer"
+                                        },
+                                        "image": {
+                                            "type": "object",
+                                            "properties": {
+                                                "preview_url": {
+                                                    "type": "string"
+                                                },
+                                                "width": {
+                                                    "type": "integer"
+                                                },
+                                                "height": {
+                                                    "type": "integer"
+                                                },
+                                                "master_width": {
+                                                    "type": "integer"
+                                                },
+                                                "master_height": {
+                                                    "type": "integer"
+                                                },
+                                                "crop": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "x": {
+                                                            "type": "integer"
+                                                        },
+                                                        "y": {
+                                                            "type": "integer"
+                                                        },
+                                                        "w": {
+                                                            "type": "integer"
+                                                        },
+                                                        "h": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                },
+                                                "preview_token": {
+                                                    "type": "string"
+                                                },
+                                                "expires_at": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "return_code": "S1",
+                                    "category": {
+                                        "category_id": 9,
+                                        "category_name": "Classes & workshops"
+                                    },
+                                    "listing_fee": 10,
+                                    "currency": "GBP",
+                                    "balance": 42.5,
+                                    "balance_after": 42.5,
+                                    "balance_sufficient": true,
+                                    "live_publishing_open": true,
+                                    "price_gbp": 12,
+                                    "image": {
+                                        "preview_url": "https://cdn.agilis.dating/event-previews/92/…/event_large.jpg?Expires=…&Signature=…",
+                                        "width": 1920,
+                                        "height": 1080,
+                                        "master_width": 2400,
+                                        "master_height": 1800,
+                                        "crop": {
+                                            "x": 0,
+                                            "y": 225,
+                                            "w": 2400,
+                                            "h": 1350
+                                        },
+                                        "preview_token": "evp_8f3c1a9d2b4e7f0c1a3b5d7e9f2c4a6b8d0e1f3a5c7e",
+                                        "expires_at": "2027-09-23T10:30:00Z"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "E1: Missing or invalid input, including an image that is too large, too small or not a JPEG/PNG. The `message` says which.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing API key, or a disabled account. Every bad key gets the same 401.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "E8: Too many previews this hour. Wait and retry.\n\nRate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-return-codes": {
+                    "S1": "Preview returned. `category` is what publishing this wording will get; `image.preview_token` is single-use, bound to your organisation and valid for 24 hours (`expires_at`); `image.preview_url` is a short-lived signed link to the processed picture. `listing_fee` is in your billing currency (`currency`). If your billing currency cannot be billed right now, the preview still returns `S1`, with `listing_fee` `null` and `balance_sufficient` `false`, and publishing would return `E6`.",
+                    "E1": "Missing or invalid input, including an image that is too large, too small or not a JPEG/PNG. The `message` says which.",
+                    "E2": "The image failed content moderation.",
+                    "E8": "Too many previews this hour. Wait and retry."
+                }
+            }
+        },
+        "/events": {
+            "post": {
+                "operationId": "publishEvent",
+                "summary": "Publish Event",
+                "description": "Publishes one dated event. Sent as `multipart/form-data`. Publishing costs one flat price, deducted from your balance: **£10, converted into your organisation's billing currency at the day's European Central Bank reference rate**. The charge and the event are created together: if your balance is too low, nothing is created and nothing is charged. Listings are **non-refundable** once published, including if you later cancel. A recurring class is one event per date. **There is no `category_id`:** the category is determined from your title, description and venue name and returned in the response — preview it first if you want to see it before paying.",
+                "tags": [
+                    "Events"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#publishEventSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "description": "A unique value per event, for example a UUID. Retrying with the same key and the same fields returns the original response and never charges twice.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "dry_run",
+                        "in": "query",
+                        "required": false,
+                        "description": "Optional. `true` checks the fields, LIVE availability, the Terms, the fee and your balance, and answers with `listing_fee`, `amount_to_charge` and `balance_after`, marked `dry_run: true`. Nothing is created or charged, and no `Idempotency-Key` is needed. `POST /events/preview` shows the category and the image.",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 120,
+                                        "description": "Up to 120 characters."
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "maxLength": 5000,
+                                        "description": "Up to 5,000 characters."
+                                    },
+                                    "venue_name": {
+                                        "type": "string",
+                                        "description": "Example: `Bar Salsa`. Read, with the title and description, to determine the category."
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "description": "Street address of the venue."
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "description": "Example: `London`"
+                                    },
+                                    "country_code": {
+                                        "type": "string",
+                                        "description": "ISO 3166-1 alpha-2. Example: `GB` (not UK)."
+                                    },
+                                    "location": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "number"
+                                        },
+                                        "maxItems": 2,
+                                        "minItems": 2,
+                                        "description": "Latitude first, then longitude, of the venue. Example: `51.5133`, `-0.1300`. **Coordinates are required and an address is not a substitute.** Every member sees how far the venue is from them, and that distance orders the list and drives the radius filter. `address` and `city` are shown to members but are never converted to coordinates on our side."
+                                    },
+                                    "starts_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "ISO 8601, UTC only. Must be in the future and no more than 5 years ahead. Example: `2027-10-16T18:30:00Z`"
+                                    },
+                                    "ends_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "ISO 8601, UTC only. Must be after `starts_at`."
+                                    },
+                                    "url": {
+                                        "type": "string",
+                                        "format": "uri",
+                                        "description": "**Required.** The http(s) address of your own booking page. Members tap through to it to book; Agilis does not sell tickets. An event cannot be published without one."
+                                    },
+                                    "advertised_name": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "description": "The business name members see as “Listed by …” instead of your trading name. Up to 100 characters; must not start with http://, https:// or www.; no HTML or line breaks. Omit or send empty to show your trading name. You must be authorised by the business you name."
+                                    },
+                                    "price_min": {
+                                        "type": "number",
+                                        "description": "Ticket price, shown to members. Omit both to show no price (such events sort after priced ones when members sort by price). Send `0` for both to mark the event as free. Send the same value twice for a single price."
+                                    },
+                                    "price_max": {
+                                        "type": "number",
+                                        "description": "Ticket price, shown to members. Omit both to show no price (such events sort after priced ones when members sort by price). Send `0` for both to mark the event as free. Send the same value twice for a single price."
+                                    },
+                                    "currency": {
+                                        "type": "string",
+                                        "description": "Currency of the ticket price, one of [`GET /event-currencies`](https://www.agilis.dating/api-doc#eventCurrenciesSectionid). Required whenever a price is supplied. It describes the ticket price only and has no effect on what you are charged."
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "contentMediaType": "application/octet-stream",
+                                        "description": "JPG or PNG, detected from the file's content (not its name), up to **10 MB**, at least **1280 × 720** pixels. Members see events at 16:9: the image is scaled to fill a 16:9 frame with its centre kept and the overflow trimmed (a *centred cover crop*), never stretched or letterboxed. Pass `crop[x]`, `crop[y]`, `crop[w]` to choose the area yourself. If the area would be below 1280 × 720 the image is rejected rather than enlarged. Every image is decoded and re-encoded (so only a fresh copy is stored, with EXIF data including GPS removed), content-moderated, and scanned. Use `POST /events/preview` to see the result before paying."
+                                    },
+                                    "preview_token": {
+                                        "type": "string",
+                                        "description": "From `POST /events/preview`. Publishes exactly the image you previewed, with the crop you saw. Single-use."
+                                    },
+                                    "source_event_id": {
+                                        "type": "integer",
+                                        "description": "Reuse the image of one of your organisation's existing events, for example last week's class. The image is copied to the new event (not shared). Send `crop[]` on a later `PATCH` to re-frame it."
+                                    },
+                                    "crop[x]": {
+                                        "type": "integer",
+                                        "description": "With `image` only: the 16:9 area to use. See Preview Event."
+                                    },
+                                    "crop[y]": {
+                                        "type": "integer",
+                                        "description": "With `image` only: the 16:9 area to use. See Preview Event."
+                                    },
+                                    "crop[w]": {
+                                        "type": "integer",
+                                        "description": "With `image` only: the 16:9 area to use. See Preview Event."
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "B"
+                                        ],
+                                        "description": "`B` — pay from your balance. Payment by Stripe link is not available for events."
+                                    },
+                                    "environment": {
+                                        "type": "string",
+                                        "enum": [
+                                            "TEST",
+                                            "LIVE"
+                                        ],
+                                        "description": "`TEST` or `LIVE`. Must be your API key's own mode: a `pk_live_` key publishes LIVE events only, a `pk_test_` key TEST events only (HTTP 403 otherwise). A TEST event is validated, classified and moderated in full, including the balance check against your TEST balance, but is never charged, never invoiced and never shown to members."
+                                    }
+                                },
+                                "required": [
+                                    "title",
+                                    "description",
+                                    "venue_name",
+                                    "address",
+                                    "city",
+                                    "country_code",
+                                    "location",
+                                    "starts_at",
+                                    "ends_at",
+                                    "url",
+                                    "payment_method",
+                                    "environment"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "S1: Event published. `amount_charged` and `currency` show what was taken from your balance, in your billing currency (0 for TEST); `category` is the category determined for it. A LIVE event appears in the app within a few minutes.\n\nE2: The image failed content moderation. Nothing was charged. Retry with the same Idempotency-Key and a different image.\n\nE3: Insufficient balance. Nothing was created. Top up in the Ad Portal and retry with the same Idempotency-Key.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "return_code": {
+                                            "type": "string"
+                                        },
+                                        "event_id": {
+                                            "type": "integer"
+                                        },
+                                        "status": {
+                                            "type": "string"
+                                        },
+                                        "payment_url": {
+                                            "description": "Can be null."
+                                        },
+                                        "amount_charged": {
+                                            "type": "integer"
+                                        },
+                                        "currency": {
+                                            "type": "string"
+                                        },
+                                        "category": {
+                                            "$ref": "#/components/schemas/Category"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "return_code": "S1",
+                                    "event_id": 3104,
+                                    "status": "Scheduled",
+                                    "payment_url": null,
+                                    "amount_charged": 0,
+                                    "currency": "GBP",
+                                    "category": {
+                                        "category_id": 9,
+                                        "category_name": "Classes & workshops"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "E1: Missing or invalid input: no `url`; no image source, or more than one; a `starts_at` in the past, `ends_at` before `starts_at`, or more than 5 years ahead; bad `country_code`; a price without a `currency`, or a currency not in `GET /event-currencies`; an image that is too large, too small, not a JPEG/PNG, or whose crop area is below 1280 × 720; an invalid, used or expired `preview_token`; a `source_event_id` that is not yours; an `advertised_name` over 100 characters, starting with http://, https:// or www., or containing HTML or a line break. The `message` says which.\n\nE6: Your organisation's billing currency cannot be billed right now. Nothing was created or charged. The message is either `Your organisation's currency (XYZ) is not one Agilis bills in. An Org Admin can choose a supported billing currency in the Ad Portal. You have not been charged. The event has not been created.` or `Prices in XYZ are temporarily unavailable because the exchange rate is out of date. Please try again later. You have not been charged. The event has not been created.`, with your currency code in place of XYZ.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing API key, or a disabled account. Every bad key gets the same 401.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "E7: LIVE publishing is temporarily unavailable. Nothing was created or charged. Retry later with the same Idempotency-Key.\n\nE9: Your organisation has not accepted the current Agilis Advertising Terms and Conditions. Nothing was created or charged. An Org Admin must accept them in the Ad Portal ([adportal.agilis.dating](https://adportal.agilis.dating)); then retry with the same Idempotency-Key. Editing, rescheduling, cancelling and deleting existing events are not affected.\n\nE1: `environment` is not your API key's mode. Nothing was created or charged.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "A request with this Idempotency-Key is still being processed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "This Idempotency-Key was already used with different fields.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-return-codes": {
+                    "S1": "Event published. `amount_charged` and `currency` show what was taken from your balance, in your billing currency (0 for TEST); `category` is the category determined for it. A LIVE event appears in the app within a few minutes.",
+                    "E1": "Missing or invalid input: no `url`; no image source, or more than one; a `starts_at` in the past, `ends_at` before `starts_at`, or more than 5 years ahead; bad `country_code`; a price without a `currency`, or a currency not in `GET /event-currencies`; an image that is too large, too small, not a JPEG/PNG, or whose crop area is below 1280 × 720; an invalid, used or expired `preview_token`; a `source_event_id` that is not yours; an `advertised_name` over 100 characters, starting with http://, https:// or www., or containing HTML or a line break. The `message` says which. / `environment` is not your API key's mode. Nothing was created or charged.",
+                    "E2": "The image failed content moderation. Nothing was charged. Retry with the same Idempotency-Key and a different image.",
+                    "E3": "Insufficient balance. Nothing was created. Top up in the Ad Portal and retry with the same Idempotency-Key.",
+                    "E6": "Your organisation's billing currency cannot be billed right now. Nothing was created or charged. The message is either `Your organisation's currency (XYZ) is not one Agilis bills in. An Org Admin can choose a supported billing currency in the Ad Portal. You have not been charged. The event has not been created.` or `Prices in XYZ are temporarily unavailable because the exchange rate is out of date. Please try again later. You have not been charged. The event has not been created.`, with your currency code in place of XYZ.",
+                    "E7": "LIVE publishing is temporarily unavailable. Nothing was created or charged. Retry later with the same Idempotency-Key.",
+                    "E9": "Your organisation has not accepted the current Agilis Advertising Terms and Conditions. Nothing was created or charged. An Org Admin must accept them in the Ad Portal ([adportal.agilis.dating](https://adportal.agilis.dating)); then retry with the same Idempotency-Key. Editing, rescheduling, cancelling and deleting existing events are not affected."
+                }
+            },
+            "get": {
+                "operationId": "listEvents",
+                "summary": "View Events",
+                "description": "Returns events, newest first, with cursor pagination in the same envelope as `GET /offers`. **Who sees what:** an organisation admin's key sees every event in the organisation, whoever created it; a developer's key sees the whole organisation's events read-only; an advertiser's key sees its own. `attendees` is always a **band** (`<10`, `10-25`, `26-50`, `50+`), never an exact number: member privacy comes first, and an exact count on a small event would let attendance be inferred.",
+                "tags": [
+                    "Events"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#viewEventsSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "environment",
+                        "in": "query",
+                        "required": true,
+                        "description": "`test` or `live`. Case-insensitive. Must be your API key's own mode.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "test",
+                                "live",
+                                "TEST",
+                                "LIVE"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Between 1 and 100. Default `20`.",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "required": false,
+                        "description": "The `next_cursor` from the previous page.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "event_status",
+                        "in": "query",
+                        "required": false,
+                        "description": "One of `upcoming`, `scheduled`, `rescheduled`, `cancelled` or `ended`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "upcoming",
+                                "scheduled",
+                                "rescheduled",
+                                "cancelled",
+                                "ended"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "owner_user_id",
+                        "in": "query",
+                        "required": false,
+                        "description": "Organisation admins: only the events created by this user.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "created_after",
+                        "in": "query",
+                        "required": false,
+                        "description": "ISO 8601, UTC only.",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "created_before",
+                        "in": "query",
+                        "required": false,
+                        "description": "ISO 8601, UTC only.",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Events returned successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Event"
+                                            }
+                                        },
+                                        "pagination": {
+                                            "$ref": "#/components/schemas/Page"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "data": [
+                                        {
+                                            "event_id": 3104,
+                                            "title": "Beginners Cuban Salsa: Friday Social",
+                                            "description": "Drop-in class for absolute beginners, followed by a social until late. No partner needed.",
+                                            "category": {
+                                                "category_id": 9,
+                                                "category_name": "Classes & workshops"
+                                            },
+                                            "venue_name": "Bar Salsa",
+                                            "address": "96 Charing Cross Road",
+                                            "city": "London",
+                                            "country_code": "GB",
+                                            "latitude": 51.5133,
+                                            "longitude": -0.13,
+                                            "starts_at": "2027-10-16T18:30:00Z",
+                                            "ends_at": "2027-10-16T23:00:00Z",
+                                            "url": "https://www.barsalsa.co.uk/classes/friday",
+                                            "advertised_name": null,
+                                            "price_min": 12,
+                                            "price_max": 12,
+                                            "currency": "GBP",
+                                            "image": "https://cdn.agilis.dating/92/events/5f0c…/event_orig.jpg",
+                                            "image_large": "https://cdn.agilis.dating/92/events/5f0c…/event_large.jpg",
+                                            "image_thumb": "https://cdn.agilis.dating/92/events/5f0c…/event_thumb.jpg",
+                                            "event_status": "Scheduled",
+                                            "attendees": "10-25",
+                                            "owner": {
+                                                "user_id": 41,
+                                                "name": "Tom Reid"
+                                            },
+                                            "environment": "LIVE",
+                                            "reschedule_count": 0,
+                                            "cloned_from_event_id": null,
+                                            "creation_datetime": "2027-09-20T10:00:00Z",
+                                            "last_edited_at": null
+                                        }
+                                    ],
+                                    "pagination": {
+                                        "limit": 20,
+                                        "count": 1,
+                                        "has_more": false,
+                                        "next_cursor": null
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid `environment`, `limit`, `cursor` or filter.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid API key, or disabled account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "`environment` is not your API key's mode.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error."
+                    }
+                }
+            }
+        },
+        "/events/{event_id}": {
+            "get": {
+                "operationId": "getEvent",
+                "summary": "View Event",
+                "description": "One event: the same fields as the list, plus what it cost (`listing_price`, `billing_currency`, `invoice_id`), whether you may change it (`can_manage`, `can_delete`), whether members have interacted with it, the stored image's size and crop (`image_master`), and its `history`: every action taken on it, by whom and when.",
+                "tags": [
+                    "Events"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#viewEventSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "event_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Path parameter. Example: `3104`",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event returned.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Event"
+                                },
+                                "example": {
+                                    "event_id": 3104,
+                                    "title": "Beginners Cuban Salsa: Friday Social",
+                                    "description": "Drop-in class for absolute beginners, followed by a social until late. No partner needed.",
+                                    "category": {
+                                        "category_id": 9,
+                                        "category_name": "Classes & workshops"
+                                    },
+                                    "venue_name": "Bar Salsa",
+                                    "address": "96 Charing Cross Road",
+                                    "city": "London",
+                                    "country_code": "GB",
+                                    "latitude": 51.5133,
+                                    "longitude": -0.13,
+                                    "starts_at": "2027-10-16T18:30:00Z",
+                                    "ends_at": "2027-10-16T23:00:00Z",
+                                    "url": "https://www.barsalsa.co.uk/classes/friday",
+                                    "advertised_name": null,
+                                    "price_min": 12,
+                                    "price_max": 12,
+                                    "currency": "GBP",
+                                    "image": "https://cdn.agilis.dating/92/events/5f0c…/event_orig.jpg",
+                                    "image_large": "https://cdn.agilis.dating/92/events/5f0c…/event_large.jpg",
+                                    "image_thumb": "https://cdn.agilis.dating/92/events/5f0c…/event_thumb.jpg",
+                                    "event_status": "Scheduled",
+                                    "attendees": "10-25",
+                                    "owner": {
+                                        "user_id": 41,
+                                        "name": "Tom Reid"
+                                    },
+                                    "environment": "LIVE",
+                                    "reschedule_count": 0,
+                                    "cloned_from_event_id": null,
+                                    "creation_datetime": "2027-09-20T10:00:00Z",
+                                    "last_edited_at": null,
+                                    "can_manage": true,
+                                    "can_delete": false,
+                                    "listing_price": 10,
+                                    "billing_currency": "GBP",
+                                    "invoice_id": "INV-2026-1047",
+                                    "app_synced_at": "2027-09-20T10:02:00Z",
+                                    "has_member_interaction": true,
+                                    "image_master": {
+                                        "width": 2400,
+                                        "height": 1800,
+                                        "crop": {
+                                            "x": 0,
+                                            "y": 225,
+                                            "w": 2400,
+                                            "h": 1350
+                                        },
+                                        "url": null
+                                    },
+                                    "history": [
+                                        {
+                                            "action": "published",
+                                            "channel": "api",
+                                            "acted_by_user_id": 41,
+                                            "acted_by": "Tom Reid",
+                                            "details": {
+                                                "environment": 1,
+                                                "category_id": 9,
+                                                "image_source": "preview"
+                                            },
+                                            "acknowledged": false,
+                                            "at": "2027-09-20T10:00:00Z"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing API key, or a disabled account. Every bad key gets the same 401.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "E1: The event was not found on this account (HTTP 404).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-return-codes": {
+                    "E1": "The event was not found on this account (HTTP 404)."
+                }
+            },
+            "patch": {
+                "operationId": "editEvent",
+                "summary": "Edit Event",
+                "description": "Changes a published event, **free of charge**. Send only the fields to change. Editable: title, description, booking page, ticket price, venue and image. **Not dates** — use Reschedule. A wording change re-determines the category, which the response returns; preview first if you want to see it. A new image goes through the same checks as on publish and is stored at new URLs (invitations already sent keep the picture they were sent with). Members see the change within a few minutes. When uploading a file, send the request as `POST` with the header `X-HTTP-Method-Override: PATCH`, because file uploads need a POST body. **You remain responsible for telling everyone who booked through your own booking system** about any change; Agilis may notify its members but does not guarantee it.",
+                "tags": [
+                    "Events"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#editEventSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "event_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Path parameter. Example: `3104`",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody."
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody."
+                                    },
+                                    "url": {
+                                        "type": "string",
+                                        "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody."
+                                    },
+                                    "advertised_name": {
+                                        "type": "string",
+                                        "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody."
+                                    },
+                                    "venue_name": {
+                                        "type": "string",
+                                        "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody."
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody."
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody."
+                                    },
+                                    "country_code": {
+                                        "type": "string",
+                                        "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody."
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "description": "Same rules as on publish. Changing the venue tells members who are going that the venue changed. Send `advertised_name` empty to go back to your trading name. Changing only the name does not change the category and notifies nobody."
+                                    },
+                                    "price_min": {
+                                        "type": "string",
+                                        "description": "A price change must send all three (all blank to show no price)."
+                                    },
+                                    "price_max": {
+                                        "type": "string",
+                                        "description": "A price change must send all three (all blank to show no price)."
+                                    },
+                                    "currency": {
+                                        "type": "string",
+                                        "description": "A price change must send all three (all blank to show no price)."
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "contentMediaType": "application/octet-stream",
+                                        "description": "A replacement picture. Same rules as on publish; moderated."
+                                    },
+                                    "preview_token": {
+                                        "type": "string",
+                                        "description": "Alternatives to `image`, as on publish."
+                                    },
+                                    "source_event_id": {
+                                        "type": "string",
+                                        "description": "Alternatives to `image`, as on publish."
+                                    },
+                                    "crop[x]": {
+                                        "type": "integer",
+                                        "description": "On its own: re-frame the existing image from the stored original, with no re-upload. With `image`: the area of the new picture."
+                                    },
+                                    "crop[y]": {
+                                        "type": "integer",
+                                        "description": "On its own: re-frame the existing image from the stored original, with no re-upload. With `image`: the area of the new picture."
+                                    },
+                                    "crop[w]": {
+                                        "type": "integer",
+                                        "description": "On its own: re-frame the existing image from the stored original, with no re-upload. With `image`: the area of the new picture."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "S1: Event updated. `changed_fields` lists what changed; `category` is the category after the change; `venue_changed` says whether members will be told of a venue change.\n\nE2: A new image failed content moderation (nothing changed), or the event has ended or been cancelled and cannot be edited.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "return_code": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "event_id": {
+                                            "type": "integer"
+                                        },
+                                        "status": {
+                                            "type": "string"
+                                        },
+                                        "category": {
+                                            "$ref": "#/components/schemas/Category"
+                                        },
+                                        "changed_fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "image": {
+                                            "type": "string"
+                                        },
+                                        "image_large": {
+                                            "type": "string"
+                                        },
+                                        "venue_changed": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "return_code": "S1",
+                                    "message": "Event has been updated.",
+                                    "event_id": 3104,
+                                    "status": "Scheduled",
+                                    "category": {
+                                        "category_id": 4,
+                                        "category_name": "Comedy"
+                                    },
+                                    "changed_fields": [
+                                        "title",
+                                        "url"
+                                    ],
+                                    "image": "https://cdn.agilis.dating/92/events/a91e…/event_orig.jpg",
+                                    "image_large": "https://cdn.agilis.dating/92/events/a91e…/event_large.jpg",
+                                    "venue_changed": false
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "E1: Invalid input; dates sent (use Reschedule); or nothing to change.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing API key, or a disabled account. Every bad key gets the same 401.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "E1: The event was not found on this account (HTTP 404).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-return-codes": {
+                    "S1": "Event updated. `changed_fields` lists what changed; `category` is the category after the change; `venue_changed` says whether members will be told of a venue change.",
+                    "E1": "Invalid input; dates sent (use Reschedule); or nothing to change. / The event was not found on this account (HTTP 404).",
+                    "E2": "A new image failed content moderation (nothing changed), or the event has ended or been cancelled and cannot be edited."
+                }
+            },
+            "delete": {
+                "operationId": "deleteEvent",
+                "summary": "Delete Event",
+                "description": "Removes an event that no member has interacted with yet, for example one published by mistake. Once any member has marked themselves as going, invited someone, or opened your booking page, the event can no longer be deleted: cancel it instead, so those members are told. Deleting does not return the listing fee.",
+                "tags": [
+                    "Events"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#deleteEventSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "dry_run",
+                        "in": "query",
+                        "required": false,
+                        "description": "Optional. `true` checks that the event can be deleted and answers `dry_run: true` (or `E5` if members have interacted). Nothing changes.",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "event_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Path parameter. Example: `3104`",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "S1: Event deleted.\n\nE5: Members have already interacted with this event. Use `POST /events/{event_id}/cancel`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "return_code": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "return_code": "S1",
+                                    "message": "Event has been deleted."
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing API key, or a disabled account. Every bad key gets the same 401.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "E1: The event was not found on this account (HTTP 404).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-return-codes": {
+                    "S1": "Event deleted.",
+                    "E1": "The event was not found on this account (HTTP 404).",
+                    "E5": "Members have already interacted with this event. Use `POST /events/{event_id}/cancel`."
+                }
+            }
+        },
+        "/events/{event_id}/reschedule": {
+            "post": {
+                "operationId": "rescheduleEvent",
+                "summary": "Reschedule Event",
+                "description": "Moves a published event to a new date, at no charge. Within a few minutes the app shows the new date, and anyone who had accepted an invitation to the event is asked to confirm again, because nobody has agreed to the new date yet. **You are responsible for informing everyone who booked through your own booking system** of the change and the reason for it; Agilis may notify its members but does not guarantee it, and is not responsible for communication about your event. Use this rather than cancelling and publishing again.",
+                "tags": [
+                    "Events"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#rescheduleEventSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "event_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Path parameter. Example: `3104`",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "starts_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "ISO 8601, UTC only. In the future, no more than 5 years ahead."
+                                    },
+                                    "ends_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "ISO 8601, UTC only. After `starts_at`."
+                                    }
+                                },
+                                "required": [
+                                    "starts_at",
+                                    "ends_at"
+                                ]
+                            },
+                            "example": {
+                                "starts_at": "2027-10-23T18:30:00Z",
+                                "ends_at": "2027-10-23T23:00:00Z"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "S1: Event rescheduled.\n\nE2: The event has already ended or been cancelled and cannot be amended.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "return_code": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "event_id": {
+                                            "type": "integer"
+                                        },
+                                        "status": {
+                                            "type": "string"
+                                        },
+                                        "starts_at": {
+                                            "type": "string"
+                                        },
+                                        "ends_at": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "return_code": "S1",
+                                    "message": "Event has been rescheduled.",
+                                    "event_id": 3104,
+                                    "status": "Rescheduled",
+                                    "starts_at": "2027-10-23T18:30:00Z",
+                                    "ends_at": "2027-10-23T23:00:00Z"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "E1: Invalid or unchanged dates.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing API key, or a disabled account. Every bad key gets the same 401.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "E1: The event was not found on this account (HTTP 404).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-return-codes": {
+                    "S1": "Event rescheduled.",
+                    "E1": "Invalid or unchanged dates. / The event was not found on this account (HTTP 404).",
+                    "E2": "The event has already ended or been cancelled and cannot be amended."
+                }
+            }
+        },
+        "/events/{event_id}/cancel": {
+            "post": {
+                "operationId": "cancelEvent",
+                "summary": "Cancel Event",
+                "description": "Cancels a published event. **Irreversible, and the listing fee is not refunded.** Within a few minutes the app marks it cancelled and every open or accepted invitation to it is cancelled. **You are responsible for informing everyone who booked through your own booking system**; Agilis may notify its members but does not guarantee it. Please cancel rather than leaving a listing up for an event that is not running, so nobody turns up to a closed door. No request body.",
+                "tags": [
+                    "Events"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#cancelEventSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "dry_run",
+                        "in": "query",
+                        "required": false,
+                        "description": "Optional. `true` checks that the event can be cancelled and answers `dry_run: true`. Nothing changes.",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "event_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Path parameter. Example: `3104`",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "S1: Event cancelled. The listing fee is not refunded.\n\nE2: The event has already ended or been cancelled.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "return_code": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "event_id": {
+                                            "type": "integer"
+                                        },
+                                        "status": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "return_code": "S1",
+                                    "message": "Event has been cancelled. Listing fees are non-refundable.",
+                                    "event_id": 3104,
+                                    "status": "Cancelled"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing API key, or a disabled account. Every bad key gets the same 401.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "E1: The event was not found on this account (HTTP 404).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-return-codes": {
+                    "S1": "Event cancelled. The listing fee is not refunded.",
+                    "E1": "The event was not found on this account (HTTP 404).",
+                    "E2": "The event has already ended or been cancelled."
+                }
+            }
+        },
+        "/events/{event_id}/analytics": {
+            "get": {
+                "operationId": "getEventAnalytics",
+                "summary": "View Event Analytics",
+                "description": "Returns engagement for one event over the requested interval. Figures are refreshed every few minutes; `as_of` says when, and is `null` until the first member interaction.",
+                "tags": [
+                    "Events"
+                ],
+                "externalDocs": {
+                    "url": "https://www.agilis.dating/api-doc#eventAnalyticsSectionid"
+                },
+                "parameters": [
+                    {
+                        "name": "event_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Path parameter. Example: `3104`",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "interval",
+                        "in": "query",
+                        "required": true,
+                        "description": "One of `24h`, `7d`, `30d`, `60d`, `90d` or `all`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "24h",
+                                "7d",
+                                "30d",
+                                "60d",
+                                "90d",
+                                "all"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Analytics returned successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "event_id": {
+                                            "type": "integer"
+                                        },
+                                        "interval": {
+                                            "type": "string"
+                                        },
+                                        "starts_at": {
+                                            "type": "string"
+                                        },
+                                        "ends_at": {
+                                            "type": "string"
+                                        },
+                                        "status": {
+                                            "type": "string"
+                                        },
+                                        "metrics": {
+                                            "type": "object",
+                                            "properties": {
+                                                "clicks": {
+                                                    "type": "integer"
+                                                },
+                                                "attendees": {
+                                                    "type": "string"
+                                                },
+                                                "invites_sent": {
+                                                    "type": "string"
+                                                },
+                                                "invites_accepted": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        "as_of": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "event_id": 3104,
+                                    "interval": "30d",
+                                    "starts_at": "2027-10-16T18:30:00Z",
+                                    "ends_at": "2027-10-16T23:00:00Z",
+                                    "status": "Scheduled",
+                                    "metrics": {
+                                        "clicks": 188,
+                                        "attendees": "26-50",
+                                        "invites_sent": "26-50",
+                                        "invites_accepted": "10-25"
+                                    },
+                                    "as_of": "2027-09-20T14:05:00Z"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid `interval`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid API key, or disabled account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The event was not found on this account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded (60 requests a minute per API key, or repeated invalid keys): wait for the number of seconds in Retry-After.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReturnCode"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait. Sent when the per-key limit or the invalid-key limit is reached.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error."
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "apiKey": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "x-api-key",
+                "description": "Created in the Ad Portal under Manage API Keys. Shown once; Roll key replaces a lost one. One key per mode (TEST or LIVE)."
+            }
+        },
+        "schemas": {
+            "Event": {
+                "type": "object",
+                "description": "An Event listing shown in the Events tab of the Agilis apps, in the mode of the API key that reads it.",
+                "properties": {
+                    "event_id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "category": {
+                        "$ref": "#/components/schemas/Category"
+                    },
+                    "venue_name": {
+                        "type": "string"
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "country_code": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "number"
+                    },
+                    "longitude": {
+                        "type": "number"
+                    },
+                    "starts_at": {
+                        "type": "string"
+                    },
+                    "ends_at": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "advertised_name": {
+                        "description": "Can be null."
+                    },
+                    "price_min": {
+                        "type": "integer"
+                    },
+                    "price_max": {
+                        "type": "integer"
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "image": {
+                        "type": "string"
+                    },
+                    "image_large": {
+                        "type": "string"
+                    },
+                    "image_thumb": {
+                        "type": "string"
+                    },
+                    "event_status": {
+                        "type": "string"
+                    },
+                    "attendees": {
+                        "type": "string"
+                    },
+                    "owner": {
+                        "type": "object"
+                    },
+                    "environment": {
+                        "type": "string"
+                    },
+                    "reschedule_count": {
+                        "type": "integer"
+                    },
+                    "cloned_from_event_id": {
+                        "description": "Can be null."
+                    },
+                    "creation_datetime": {
+                        "type": "string"
+                    },
+                    "last_edited_at": {
+                        "description": "Can be null."
+                    }
+                }
+            },
+            "Category": {
+                "type": "object",
+                "description": "An Offer category, or an Event category.",
+                "properties": {
+                    "category_id": {
+                        "type": "integer",
+                        "description": "Unique ID of the category. Example: `1`"
+                    },
+                    "category_name": {
+                        "type": "string",
+                        "description": "Name of the category. Example: `\"Retail\"`"
+                    }
+                }
+            },
+            "Page": {
+                "type": "object",
+                "description": "Where a list response is in the whole list: the page size, how many items this page has, and the cursor for the next page.",
+                "properties": {
+                    "limit": {
+                        "type": "integer",
+                        "description": "The page size asked for (default 20, at most 100)."
+                    },
+                    "count": {
+                        "type": "integer",
+                        "description": "How many items this page has."
+                    },
+                    "has_more": {
+                        "type": "boolean",
+                        "description": "Whether there is another page."
+                    },
+                    "next_cursor": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Pass as `cursor` to get the next page; null on the last page."
+                    }
+                }
+            },
+            "ReturnCode": {
+                "type": "object",
+                "description": "The body of an error response: a return code, scoped to the endpoint, and a message.",
+                "properties": {
+                    "return_code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "S1/S2 on success, E1–E16 on error. The meaning depends on the endpoint: see its x-return-codes."
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "What went wrong, in English."
+                    }
+                }
+            }
+        }
+    }
+}

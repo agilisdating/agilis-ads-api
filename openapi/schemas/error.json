@@ -1,0 +1,20 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://www.agilis.dating/schemas/error.json",
+    "title": "Error",
+    "description": "The body of an error response: a return code, scoped to the endpoint, and a message.",
+    "type": "object",
+    "properties": {
+        "return_code": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "S1/S2 on success, E1–E16 on error. The meaning depends on the endpoint: see its x-return-codes."
+        },
+        "message": {
+            "type": "string",
+            "description": "What went wrong, in English."
+        }
+    }
+}

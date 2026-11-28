@@ -1,0 +1,28 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://www.agilis.dating/schemas/page.json",
+    "title": "Page",
+    "description": "Where a list response is in the whole list: the page size, how many items this page has, and the cursor for the next page.",
+    "type": "object",
+    "properties": {
+        "limit": {
+            "type": "integer",
+            "description": "The page size asked for (default 20, at most 100)."
+        },
+        "count": {
+            "type": "integer",
+            "description": "How many items this page has."
+        },
+        "has_more": {
+            "type": "boolean",
+            "description": "Whether there is another page."
+        },
+        "next_cursor": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Pass as `cursor` to get the next page; null on the last page."
+        }
+    }
+}

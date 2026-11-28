@@ -1,0 +1,17 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://www.agilis.dating/schemas/interest.json",
+    "title": "Interest",
+    "description": "An interest that an Offer can target.",
+    "type": "object",
+    "properties": {
+        "interest_id": {
+            "type": "integer",
+            "description": "Unique ID of the interest. Example: `3`"
+        },
+        "interest_name": {
+            "type": "string",
+            "description": "Name of the interest. Example: `\"Cooking\"`"
+        }
+    }
+}

@@ -1,0 +1,101 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://www.agilis.dating/schemas/offer.json",
+    "title": "Offer",
+    "description": "An Offer: a time-limited deal shown to Agilis members near the business, in the mode of the API key that reads it.",
+    "type": "object",
+    "properties": {
+        "offer_id": {
+            "type": "integer",
+            "description": "The offer's id."
+        },
+        "title": {
+            "type": "string",
+            "description": "As created."
+        },
+        "category": {
+            "type": "string",
+            "description": "As created."
+        },
+        "description": {
+            "type": "string",
+            "description": "As created."
+        },
+        "terms_and_conditions": {
+            "type": "string",
+            "description": "As created."
+        },
+        "advertised_name": {
+            "description": "The business name members see; `null` when your trading name is shown."
+        },
+        "push_notification_title": {
+            "type": "string",
+            "description": "The notification members who opted in get when the offer starts. `null` on offers created before these fields existed: those offers are never sent as a notification."
+        },
+        "push_notification_message": {
+            "type": "string",
+            "description": "The notification members who opted in get when the offer starts. `null` on offers created before these fields existed: those offers are never sent as a notification."
+        },
+        "button_preset": {
+            "type": "string",
+            "description": "The button's text: `claim_offer`, `visit_website`, `install_app`, `book_now`, `get_directions` or `custom`. `claim_offer` on offers created before the button text could be chosen."
+        },
+        "button_text": {
+            "description": "Your own button text when `button_preset` is `custom`; otherwise `null`."
+        },
+        "url": {
+            "type": "string",
+            "description": "As created."
+        },
+        "image": {
+            "type": "string",
+            "description": "Signed URL of the image. It expires, so do not store it."
+        },
+        "latitude": {
+            "type": "number",
+            "description": "Where the offer is shown."
+        },
+        "longitude": {
+            "type": "number",
+            "description": "Where the offer is shown."
+        },
+        "radius": {
+            "type": "integer",
+            "description": "Where the offer is shown."
+        },
+        "gender": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "For example `[\"Male\",\"Female\"]`; empty when the offer targets every gender."
+        },
+        "interests": {
+            "type": "array",
+            "items": {
+                "$ref": "https://www.agilis.dating/schemas/interest.json"
+            },
+            "description": "`{interest_id, interest_name}` objects; empty when no interest targeting was applied."
+        },
+        "start_datetime": {
+            "type": "string",
+            "description": "ISO 8601, UTC."
+        },
+        "expiry_datetime": {
+            "type": "string",
+            "description": "ISO 8601, UTC."
+        },
+        "creation_datetime": {
+            "type": "string",
+            "description": "ISO 8601, UTC."
+        },
+        "offer_status": {
+            "type": "string",
+            "description": "Awaiting Payment, Active, Scheduled, Paused or Ended."
+        },
+        "status": {
+            "type": "string",
+            "description": "`enabled` or `disabled`: whether an Admin has disabled the offer."
+        }
+    }
+}
